@@ -1,0 +1,5 @@
+/Assets/**/*.json
+*.mp3
+*.m4a
+*.jar
+/Logs

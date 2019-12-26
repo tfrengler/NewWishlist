@@ -1,0 +1,25 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "module": "AMD",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "allowJs": false,
+        "alwaysStrict": true,
+        "outDir": "Assets/js",
+        "outFile": "Assets/js/release.js",
+        "strictNullChecks": false,
+        "strictFunctionTypes": true,
+        "sourceMap": false,
+        "target": "es2017",
+        "lib": ["es2017", "dom"]
+    },
+    "include": [
+        "Assets/js/src/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+}

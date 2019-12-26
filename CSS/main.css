@@ -1,0 +1,138 @@
+
+@font-face {
+    font-family: "roboto";
+    src: url("./../Media/Fonts/Roboto-Regular.ttf");
+}
+
+body {
+    font-family: roboto;
+    padding-bottom: 4rem;
+}
+
+img {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+}
+
+#Username, #Password {
+    margin-bottom: 0.2rem;
+}
+
+#EditWish textarea {
+    width: 100%;
+    height: auto;
+}
+
+#EditWish img {
+    max-width: 15rem;
+}
+
+.wish-description, .wish-links, .wish-image {
+    background-color: white !important;
+}
+
+footer {
+    background-color: #e9ecef;
+}
+
+.hidden {
+    display: none;
+}
+
+main {
+    margin-top: 6rem;
+}
+
+section[id^='WishID_'], #AddWish {
+    margin: 0 auto;
+}
+
+#MenuButton {
+    margin-right: 1rem;
+}
+
+.wish-item {
+    max-height: 10rem;
+}
+
+.wish-image img {
+    max-width: 10rem;
+}
+
+.wish-description {
+    max-width: 25rem;
+}
+
+.info-box {
+    color: #004085;
+    background-color: #cce5ff;
+    border-color: #b8daff;
+
+    position: relative;
+    padding: .75rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+}
+
+#Notifications {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.notification-message {
+    z-index: 9999;
+    margin-bottom: 0.5rem;
+    pointer-events: auto;
+}
+
+/* RESPONSIVE STYLING */
+
+@media(max-width: 1000px) {
+    .wish-image, .wish-description {
+        margin-right: 0 !important;
+    }
+
+    .wish-delete i, .wish-edit i, #AddWish i {
+        font-size: 1rem !important;
+    }
+}
+
+@media(max-width: 700px) {
+    .wish {
+        flex-direction: column !important;
+        align-items: center;
+    }
+
+    .wish-image {
+        text-align: center;
+    }
+
+    .wish-links, .wish-image, .wish-description {
+        width: 100% !important;
+    }
+
+    #HeaderTitle {
+        font-size: 1rem;
+    }
+
+    .m-right {
+        margin-right: 0 !important;
+    }
+
+    .wish-delete i, .wish-edit i, #AddWish i {
+        font-size: 3rem !important;
+    }
+}
+
+.wish-edit, .wish-delete {
+    align-self: center;
+}
