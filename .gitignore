@@ -1,5 +1,4 @@
-/Assets/**/*.json
-*.mp3
-*.m4a
-*.jar
+*.json
+*.html
+/66a5afa2-91d2-41d2-81c2-90ea5366a071
 /Logs

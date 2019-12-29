@@ -19,19 +19,22 @@
 		<script type="module" src="JS/main.js" ></script>
 		<link rel="stylesheet" href="CSS/main.css" />
 
-		<!--- todo(thomas): Debuggery --->
-		<script>
+        <!--- todo(thomas): Debuggery --->
+        <cfsilent>
+            <cfset authKey = application.security.generateAuthKey(sessionid=session.sessionid) />
+            <cfset session.ajaxAuthKey = authKey />
+        </cfsilent>
+
+        <script>
+            <cfoutput>const CFAjaxAuthKey = "#authKey#";</cfoutput>
+
 			const onImageNotFound = function(imgElement) {
 				imgElement.src = "Media/Images/ImageNotFound.jpeg";
-			}
-
-			window.onload = function() {
-				nw.wishlists();
 			}
 		</script>
 	</head>
 
-	<body>
+    <body>
 		<!--- MENU MODAL --->
 		<div class="modal fade" id="MainMenu" data-backdrop="static" tabindex="-1" >
 			<div class="modal-dialog" >
@@ -62,6 +65,7 @@
 							LOG IN
 							<i class="fas fa-cog fa-spin text-warning"></i>
 						</button>
+						<button type="button" class="btn btn-outline-info">LOG OUT</button>
 					</div>
 
 					<div class="modal-footer">
@@ -154,17 +158,18 @@
 		</header>
 
 		<!--- MAIN CONTAINER --->
-		<main class="container-fluid">
+        <main class="container-fluid">
+            <cfdump var=#session# />
 			
 			<div class="row">
 
 				<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light">
 
-					<div class="wish-item wish-edit p-3" >
+					<!--- <div class="wish-item wish-edit p-3" >
 						<button id="EditWish_X" class="btn btn-warning" data-toggle="modal" data-target="#EditWish" >
 							<i class="fas fa-edit fa-3x"></i>
 						</button>
-					</div>
+					</div> --->
 
 					<div class="wish-item wish-image border rounded mr-3 overflow-hidden">
 						<img onerror="onImageNotFound(this)" class="rounded" src="Media/Images/xxx.jpg" referrerpolicy="no-referrer" validate="never" />
@@ -189,11 +194,11 @@
 						</i></div>
 					</div>
 
-					<div class="wish-item wish-delete p-3" >
+					<!--- <div class="wish-item wish-delete p-3" >
 						<button id="DeleteWish_X" class="btn btn-danger" >
 							<i class="fas fa-trash-alt fa-3x"></i>
 						</button>
-					</div>
+					</div> --->
 				</section>
 
 			</div>
