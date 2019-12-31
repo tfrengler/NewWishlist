@@ -5,8 +5,9 @@
 	<cfset this.sessionTimeout = createTimespan(0, 1, 0, 0) />
 	<cfset this.sessionType = "JEE" />
 	<cfset this.sessionManagement = true />
-	<cfset this.sessionStorage = "cookie" />
-    <cfset this.setClientCookies = true />
+    <cfset this.sessionStorage = "cookie" />
+    <!--- We will exclusively be using the JSESSIONID as client identifier --->
+    <cfset this.setClientCookies = false />
 
 	<cfset this.root = getDirectoryFromPath( getCurrentTemplatePath() ) />
 
@@ -19,8 +20,7 @@
         } />
 
         <cfset var configFileLocation = this.root & "config.json" />
-        
-        <!--- TODO(thomas): Config loading --->
+
         <cfif NOT fileExists(configFileLocation) >
             <cfthrow message="Error initializing application" detail="Config-file does not exist: #configFileLocation#" />
         </cfif>
@@ -44,8 +44,8 @@
         } />
 
         <cfset application.security = new CFCs.SecurityManager() />
-        <cfset application.authentication = new CFCs.Authentication(application.security, "C:\Server\web\NewWishlist\66a5afa2-91d2-41d2-81c2-90ea5366a071\Users") />
-
+        <!--- TODO(thomas): Change this to point to the folder from the config-file --->
+        <cfset application.authentication = new CFCs.Authentication(application.security, "#this.root#\66a5afa2-91d2-41d2-81c2-90ea5366a071\Users") />
 
 		<cfreturn true />
 	</cffunction>

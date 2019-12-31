@@ -14,9 +14,9 @@ JSUtils.deepFreeze = function(object) {
 	return Object.freeze(object);
 };
 
-JSUtils.XORDecode = function(encodedString, mask) {
+JSUtils.XORDecode = function(encodedString, mask, separator='|') {
 	let unmaskedCharCode = 0;
-	const inputString = encodedString.split('|');
+	const inputString = encodedString.split(separator);
 	const decoded = [];
 
 	for (let index = 0; index < inputString.length; index++) {
@@ -27,8 +27,21 @@ JSUtils.XORDecode = function(encodedString, mask) {
 	return decoded.join('');
 };
 
-JSUtils.XOREncode = function(rawString, mask) {
-	
+JSUtils.XOREncode = function(rawString, mask, separator='|') {
+    const encoded = [];
+    let charCodeMasked;
+    let hexedChar;
+    
+    for (let index = 0; index < rawString.length; index++) {
+        charCodeMasked = rawString.charCodeAt(index) ^ mask.charCodeAt(index % mask.length);
+        hexedChar = charCodeMasked.toString(16);
+
+        encoded.push(hexedChar);
+        encoded.push(separator);
+    }
+
+    encoded.pop();
+    return encoded.join('');
 };
 
 JSUtils.escapeString = function(stringValue) {
