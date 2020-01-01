@@ -1,5 +1,24 @@
 "use strict";
 
+const backendEntryPoint = "CFCs/AjaxProxy.cfc";
+const main = Object.create(null);
+const services = Object.create(null);
+
+import {Authentication} from "./Authentication.js";
+import * as Events from "./EventManager.js";
+import { ServiceLocator } from "./ServiceLocator.js";
+
+main.events = new Events.EventManager(backendEntryPoint, window.authKey);
+
+services.events = main.events;
+services.eventTypes = Events.EventTypes;
+let serviceLocator = new ServiceLocator(services);
+
+main.authentication = new Authentication(backendEntryPoint, window.authKey, serviceLocator);
+
+// Object.freeze(main);
+
+window.main = main;
 /*
     image/jpeg
     image/bmp
@@ -9,30 +28,94 @@
 */
 
 /*
-    wishlist: {
-        wishes: [],
-        load(),
-        addNewWish(),
-        deleteWish(),
+
+Authentication: class
+Events: namespace
+ServiceLocator: class
+
+main: {
+
+    controllers: {
+        menuDialog: {
+            elements: {}
+            loadWishlist()
+            logIn()
+            logOut()
+            onLogIn()
+            onLogOut()
+            init()
+        }
+
+        headersAndFooters: {
+            onLoadWishlist()
+            onLoggedIn()
+            onLoggedOut()
+            onEnableEditMode()
+            onDisableEditMode()
+        }
+
+        notifications: {
+            elements: {}
+            init()
+        }
+
+        wishlist: {
+            elements: {}
+            addNewWish()
+            delete()
+            edit()
+            onOpenAddDialog()
+            onOpenEditDialog()
+            onSaveChanges()
+            onAddedNewWish()
+            onDeletedWish()
+            onWishlistLoaded()
+            renderWish()
+            removeRenderedWish()
+            onLoggedIn()
+            onLoggedOut()
+            onEnableEditMode()
+            onDisableEditMode()
+            init()
+        }
+
+        editWishDialog: {
+            elements: {}
+            onSelectPictureForUpload()
+            onProvidePictureLink()
+            onPictureValidated()
+            onPictureNotValidate()
+            onSaveChanges()
+            onCloseDialog()
+            init()
+        }
     }
-    wish: {
 
-        picture: "",
-        description: "",
-        links: string[]
+    models: {
+        wishlist: {
+            wishes: [],
+            load(),
+            addNewWish(),
+            deleteWish(),
+        }
+        wish: {
 
-        changePicture(),
-        changeDescription(),
-        changeLinks()
+            picture: "",
+            description: "",
+            links: string[]
+
+            changePicture(),
+            changeDescription(),
+            changeLinks()
+        }
+
+        authentication: {
+            token
+            logIn()
+            logOut()
+        }
     }
 
-    events
-    serviceLocator
-    utils
-
-    authentication: {
-        logIn()
-        logOut()
-    }
-
+    events: ()
+}
 */

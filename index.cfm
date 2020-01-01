@@ -16,7 +16,6 @@
 		<script src="JS/bootstrap/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"></script>
 		<script src="JS/bootstrap/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"></script>
 
-		<script type="module" src="JS/main.js" ></script>
 		<link rel="stylesheet" href="CSS/main.css" />
 
         <!--- todo(thomas): Debuggery --->
@@ -32,6 +31,8 @@
 				imgElement.src = "Media/Images/ImageNotFound.jpeg";
 			}
 		</script>
+
+		<script type="module" src="JS/main.js" ></script>
 	</head>
 
     <body>
