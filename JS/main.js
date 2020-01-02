@@ -1,20 +1,27 @@
+/* 
+global
+    CFAjaxAuthKey
+*/
 "use strict";
 
 const backendEntryPoint = "CFCs/AjaxProxy.cfc";
 const main = Object.create(null);
 const services = Object.create(null);
 
-import {Authentication} from "./Authentication.js";
+import { Authentication } from "./Authentication.js";
 import * as Events from "./EventManager.js";
 import { ServiceLocator } from "./ServiceLocator.js";
 
-main.events = new Events.EventManager(backendEntryPoint, window.authKey);
+main.events = new Events.EventManager(backendEntryPoint, CFAjaxAuthKey);
 
 services.events = main.events;
 services.eventTypes = Events.EventTypes;
-let serviceLocator = new ServiceLocator(services);
 
-main.authentication = new Authentication(backendEntryPoint, window.authKey, serviceLocator);
+let serviceBundle = new Map();
+for(let serviceName in services) serviceBundle.set(serviceName, services[serviceName]);
+let serviceLocator = new ServiceLocator(serviceBundle);
+
+main.authentication = new Authentication(backendEntryPoint, CFAjaxAuthKey, serviceLocator);
 
 // Object.freeze(main);
 
@@ -110,7 +117,7 @@ main: {
         }
 
         authentication: {
-            token
+            token: ""
             logIn()
             logOut()
         }

@@ -84,7 +84,32 @@ JSUtils.shuffleArray = function(array) {
 };
 
 JSUtils.wait = async function(ms) {
-    return new Promise((resolve)=> setTimeout(resolve, parseFloat(ms) || 0));
-};	
+    return new Promise((resolve)=> setTimeout(resolve, parseFloat(ms) || 1000));
+};
+
+JSUtils.fetchWithTimeout = function(url, timeout, requestOptions=0) {
+
+    return new Promise( (resolve, reject) => {
+
+        const abortController = new AbortController();
+        if (typeof requestOptions === typeof {})
+            requestOptions.signal = abortController.signal;
+        else
+            requestOptions = {signal: abortController.signal};
+
+        let timer = setTimeout(
+            () => {
+                abortController.abort();
+                reject( new Error(`Request timed out (${timeout} ms)`) )
+            },
+            timeout
+        );
+
+        fetch(new Request(url, requestOptions)).then(
+            response => resolve( response ),
+            error => reject( error )
+        ).finally( () => clearTimeout(timer) );
+    })
+};
 
 Object.freeze(JSUtils);
