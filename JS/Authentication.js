@@ -1,8 +1,8 @@
 "use strict";
 
-export class Authentication {
+export class AuthenticationManager {
 
-	constructor(backendEntryPoint="ERROR", ajaxAuthKey="ERROR", services=null) {
+	constructor(backendEntryPoint="UNDEFINED_ERROR", ajaxAuthKey="UNDEFINED_ERROR", services=null) {
 
 		this.services = services;
 		this.backendEntryPoint = backendEntryPoint;
@@ -34,6 +34,7 @@ export class Authentication {
 			}
 		});
 
+		console.log(`AuthenticationManager initialized, with backendEntryPoint '${backendEntryPoint}' and ajaxAuthKey: ${ajaxAuthKey}`);
 		return Object.seal(this);
 	}
 
@@ -63,28 +64,57 @@ export class Authentication {
 		
 		let decodedResponse;
 
-		if (response.status !== 200)
+		if (response.status !== 200) {
 			this.services.get("events").trigger(
 				this.services.get("eventTypes").LOGIN_FAILED,
-				{message: "Internal server error :("}
+				{
+					error: true,
+					friendlyMessage: "Internal server error :(",
+					actualError: `HTTP-call to AjaxProxy failed for some reason (status ${response.status})`
+				}
 			);
+			return;
+		}
 		
 		if (response.json)
 			decodedResponse = await response.json();
-		else
+		else {
 			this.services.get("events").trigger(
 				this.services.get("eventTypes").LOGIN_FAILED,
-				{message: "Internal server error :("}
+				{
+					error: true,
+					friendlyMessage: "Internal server error :(",
+					actualError: "Return data from the backend entry point could not be parsed as JSON"
+				}
 			);
+			return;
+		}
 
-		if (decodedResponse.RESPONSE_CODE == 0 && decodedResponse.DATA.TOKEN)
-			this.token = decodedResponse.DATA.TOKEN;
-		else
+		if (decodedResponse.RESPONSE_CODE != 0) {
 			this.services.get("events").trigger(
 				this.services.get("eventTypes").LOGIN_FAILED,
-				{message: "Internal server error :("}
+				{
+					error: true,
+					friendlyMessage: "Internal server error :(",
+					actualError: `HTTP-call to AjaxProxy failed when acting on request data (${decodedResponse.RESPONSE_CODE})`
+				}
 			);
+			return;
+		}
 
+		if (decodedResponse.RESPONSE_CODE == 0 && decodedResponse.DATA.TOKEN) {
+			this.token = decodedResponse.DATA.TOKEN || Symbol("EMPTY_RETURN_DATA");
+			this.services.get("events").trigger(this.services.get("eventTypes").LOGIN_SUCCESS);
+			return
+		}
+
+		this.services.get("events").trigger(
+			this.services.get("eventTypes").LOGIN_FAILED,
+			{
+				error: false,
+				message: "Username or password incorrect"
+			}
+		);
 	}
 
 	async logOut() {

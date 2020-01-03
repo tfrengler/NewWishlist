@@ -1,6 +1,6 @@
 "use strict";
 
-const JSUtils = Object.create(null);
+export const JSUtils = Object.create(null);
 
 JSUtils.deepFreeze = function(object) {
 	var propNames = Object.getOwnPropertyNames(object);
@@ -110,6 +110,19 @@ JSUtils.fetchWithTimeout = function(url, timeout, requestOptions=0) {
             error => reject( error )
         ).finally( () => clearTimeout(timer) );
     })
+};
+
+JSUtils.hash = function(inputString) {
+    var hash = 0, i, chr;
+    if (!inputString.length) return hash;
+
+    for (i = 0; i < inputString.length; i++) {
+        chr   = inputString.charCodeAt(i);
+        hash  = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+
+    return hash;
 };
 
 Object.freeze(JSUtils);

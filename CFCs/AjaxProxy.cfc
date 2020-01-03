@@ -14,8 +14,6 @@
 		<cfset var returnData = {RESPONSE_CODE: 0, DATA: nullValue()} />
         <cfset var deserializedParameters = {} />
 
-        <cfdump var=#arguments# format="html" output="C:\Server\web\NewWishlist\ajaxProxyDebug.html" />
-
 		<cftry>
             <cfset deserializedParameters = deserializeJSON(arguments.parameters) />
             <!--- Include a 'sessionHandle'-key of any value in argument 'parameters' and the current session will be passed to the invoked method --->
@@ -24,36 +22,52 @@
             </cfif>
 
 			<cfcatch>
-                <cfheader statuscode="500" />
-				<cfreturn {RESPONSE_CODE: 2} />
+				<cfreturn {RESPONSE_CODE: 1} />
 			</cfcatch>
-		</cftry>
+        </cftry>
+        
+        <cftry>
+            <!--- Include an 'uploadFiles'-key of any value in argument 'parameters' and the files on the form will be uploaded. The result of the upload will be put in uploadFiles-key in the parameters --->
+            <cfif structKeyExists(deserializedParameters, "uploadFiles") AND isArray(deserializedParameters.uploadFiles, 1) >
+                <cfset var uploadedFiles = {
+                    results: {},
+                    errors: {}
+                } />
+
+                <cffile
+                    action="upload"
+                    destination=#application.mapping.tempFiles#
+                    mode="readonly"
+                    nameconflict="makeunique"
+                    result="deserializedParameters.uploadFiles"
+                />
+            </cfif>
+
+            <cfcatch>
+                <cfreturn {RESPONSE_CODE: 2} />
+            </cfcatch>
+        </cftry>
 
 		<cfif len(arguments.controller) IS 0 >
-            <cfheader statuscode="500" />
 			<cfreturn {RESPONSE_CODE: 3} />
 		</cfif>
 
 		<cfif len(arguments.function) IS 0 >
-            <cfheader statuscode="500" />
 			<cfreturn {RESPONSE_CODE: 4} />
 		</cfif>
 
         <cfif   NOT structKeyExists(session, "ajaxAuthKey")
                 OR (structKeyExists(session, "ajaxAuthKey") AND session.ajaxAuthKey IS NOT arguments.authKey) >
 
-            <cfheader statuscode="500" />
 			<cfreturn {RESPONSE_CODE: 5} />
 		</cfif>
 
 		<!--- The following 2 checks need to be coupled with a struct called allowedAJAXControllers in the application scope, where each index is the name of a CFC, and each key is an array of method names --->
 		<cfif NOT structKeyExists(application.allowedAJAXControllers, arguments.controller) >
-            <cfheader statuscode="500" />
 			<cfreturn {RESPONSE_CODE: 6} />
 		</cfif>
 
 		<cfif NOT arrayFind(application.allowedAJAXControllers[arguments.controller], arguments.function) >
-            <cfheader statuscode="500" />
 			<cfreturn {RESPONSE_CODE: 7} />
 		</cfif>
 		
@@ -73,8 +87,7 @@
 
             <cfcatch>
                 <!--- Error upon invoking the method or serializing the response. Put some sort of logging in here for the catch if you want to know what's going on --->
-                <cfdump var=#cfcatch# format="html" output="C:\Server\web\NewWishlist\InternalError.html" />
-                <cfheader statuscode="500" />
+                <cfdump var=#cfcatch# format="html" output="#application.mapping.logs#/InternalError.html" />
 				<cfreturn {RESPONSE_CODE: 8} />
 			</cfcatch>
 		</cftry>
@@ -84,7 +97,6 @@
             <cfreturn returnData />
         </cfif>
         
-        <cfheader statuscode="500" />
         <cfreturn {RESPONSE_CODE: 9} />
 	</cffunction>
 

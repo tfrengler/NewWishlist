@@ -6,24 +6,42 @@ global
 
 const backendEntryPoint = "CFCs/AjaxProxy.cfc";
 const main = Object.create(null);
-const services = Object.create(null);
 
-import { Authentication } from "./Authentication.js";
+import { AuthenticationManager } from "./Authentication.js";
 import * as Events from "./EventManager.js";
 import { ServiceLocator } from "./ServiceLocator.js";
+import { JSUtils } from "./Utils.js";
+import { NotificationManager } from "./Notifications.js";
+import { Wishlist } from "./Wishlist.js";
+import { Wish } from "./Wish.js";
 
-main.events = new Events.EventManager(backendEntryPoint, CFAjaxAuthKey);
+let models = Object.freeze({
+    Wishlist: Wishlist,
+    Wish: Wish
+});
 
-services.events = main.events;
-services.eventTypes = Events.EventTypes;
+main.controllers = Object.freeze({
+    menuDialog: Symbol("NOT_IMPLEMENTED"),
+    headersAndFooters: Symbol("NOT_IMPLEMENTED"),
+    wishlist: Symbol("NOT_IMPLEMENTED"),
+    editWishDialog: Symbol("NOT_IMPLEMENTED")
+});
 
+let eventManager = new Events.EventManager(backendEntryPoint, CFAjaxAuthKey);
 let serviceBundle = new Map();
-for(let serviceName in services) serviceBundle.set(serviceName, services[serviceName]);
+
+serviceBundle.set("events", eventManager);
+serviceBundle.set("eventTypes", Events.EventTypes);
+serviceBundle.set("utils", JSUtils);
+serviceBundle.set("models", models);
+
 let serviceLocator = new ServiceLocator(serviceBundle);
 
-main.authentication = new Authentication(backendEntryPoint, CFAjaxAuthKey, serviceLocator);
+main.authentication = new AuthenticationManager(backendEntryPoint, CFAjaxAuthKey, serviceLocator);
+main.notifications = new NotificationManager(document.getElementById('Notifications'), 2000, serviceLocator);
 
 // Object.freeze(main);
+console.log("Everything's initialized and ready to rock and roll");
 
 window.main = main;
 /*
@@ -36,21 +54,18 @@ window.main = main;
 
 /*
 
-Authentication: class
-Events: namespace
-ServiceLocator: class
-
 main: {
+
+    // All controllers have an element-map with an internal string name as key, and the value is a handle to each permanent/static DOM element
+    // All controllers also have an init-function which serves to set up all initial, permanent event handlers
 
     controllers: {
         menuDialog: {
-            elements: {}
             loadWishlist()
             logIn()
             logOut()
             onLogIn()
             onLogOut()
-            init()
         }
 
         headersAndFooters: {
@@ -61,13 +76,8 @@ main: {
             onDisableEditMode()
         }
 
-        notifications: {
-            elements: {}
-            init()
-        }
-
         wishlist: {
-            elements: {}
+            state: {wishlist}
             addNewWish()
             delete()
             edit()
@@ -83,46 +93,18 @@ main: {
             onLoggedOut()
             onEnableEditMode()
             onDisableEditMode()
-            init()
         }
 
         editWishDialog: {
-            elements: {}
             onSelectPictureForUpload()
             onProvidePictureLink()
             onPictureValidated()
             onPictureNotValidate()
             onSaveChanges()
             onCloseDialog()
-            init()
         }
     }
 
-    models: {
-        wishlist: {
-            wishes: [],
-            load(),
-            addNewWish(),
-            deleteWish(),
-        }
-        wish: {
-
-            picture: "",
-            description: "",
-            links: string[]
-
-            changePicture(),
-            changeDescription(),
-            changeLinks()
-        }
-
-        authentication: {
-            token: ""
-            logIn()
-            logOut()
-        }
-    }
-
-    events: ()
+    authentication: {}
 }
 */

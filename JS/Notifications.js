@@ -7,116 +7,97 @@ const NotificationTypes = Object.freeze({
 	LOADING: Symbol("LOADING")
 });
 
-const CSSClassMap = {};
-CSSClassMap[NotificationTypes.SUCCESS] = "test";
-CSSClassMap[NotificationTypes.WARNING] = "test";
-CSSClassMap[NotificationTypes.ERROR] = "test";
-CSSClassMap[NotificationTypes.LOADING] = "test";
+const CSSClassMap = Object.create(null);
+CSSClassMap[NotificationTypes.SUCCESS] = "TEST_SUCCESS";
+CSSClassMap[NotificationTypes.WARNING] = "TEST_WARNING";
+CSSClassMap[NotificationTypes.ERROR] = "TEST_ERROR";
+CSSClassMap[NotificationTypes.LOADING] = "TEST_LOADING";
 Object.freeze(CSSClassMap);
 
-class Notifications {
+class NotificationManager {
 
-	constructor() {
-		this.anchor = null;
+	constructor(anchor=Symbol("ARGUMENT_EMPTY"), timeout=0, services=null) {
+		if (!(anchor instanceof HTMLElement))
+			throw new Error("Argument 'anchor' is NOT an instance of HTMLElement: " + anchor.constructor.name);
 
+		this.anchor = anchor || Symbol("ARGUMENT_UNDEFINED");
+		this.timeout = timeout || 1000;
+		this.services = services;
+		this.ajaxLoadValueMap = new Map();
+
+		console.log("NotificationManager initialized");
 		return Object.freeze(this);
 	}
 
 	notifySuccess(message, timeout=0) {
-		this.notify(NotificationTypes.SUCCESS, message, timeout);
+		this._notify(NotificationTypes.SUCCESS, message, timeout);
 	}
 
-	notifyLoading(timeout=0) {
-		this.notify(NotificationTypes.LOADING, "", timeout);
+	notifyLoading(message, timeout=0) {
+		this._notify(NotificationTypes.LOADING, message, timeout);
 	}
 
 	notifyError(message, timeout=0) {
-		this.notify(NotificationTypes.ERROR, message, timeout);
+		this._notify(NotificationTypes.ERROR, message, timeout);
 	}
 
 	notifyWarning(message, timeout=0) {
-		this.notify(NotificationTypes.WARNING, message, timeout);
+		this._notify(NotificationTypes.WARNING, message, timeout);
 	}
 
-	notify(type, message, fadeoutTime=0) {
+	_notify(type, message, timeout=0) {
 
-		this.anchor.hide();
-		this.removeAlertClasses(this.anchor);
-		this.anchor.removeClass("ajax-loading");
+		this._hide();
+		this.anchor.classList.remove(...Object.keys(CSSClassMap));
+		this.anchor.classList.add(CSSClassMap[type]);
+		this.anchor.innerText = message;
+		this._show();
 
-		this.anchor.addClass( CSSClassMap[type] );
-		this.anchor.html(message);
-		this.anchor.show();
-
-		if (fadeoutTime)
-			setTimeout(function() {this.anchor.fadeOut(1000);},fadeoutTime)
+		setTimeout(function() {this._hide()}, timeout || this.timeout);
 	}
 
-	onAJAXCallError(AjaxResponse) {
-
-		var MainContentContainer = $("#" + constants.MAINCONTENT_CONTAINER_ID);
-		var MessageBox = $("#Notification-Box");
-
-		if (debug) {
-			MainContentContainer.html( AjaxResponse[0].responseText );
-		} else {
-		
-			removeAlertClasses(MessageBox);
-			MessageBox.removeClass("ajax-loading");
-			MessageBox.addClass("red-error-text");
-
-			MessageBox.html("Ooops, something went wrong. Sorry about that! A team of highly trained monkeys has been dispatched to deal with the situation. If you see them tell them what you did when this happened.");
-			MessageBox.fadeIn(1000);
-		}
-
-		console.warn("onAJAXCallError triggered");
-		console.warn(AjaxResponse[0]);
+	_hide() {
+		this.anchor.style.display = "hidden";
 	}
 
-	onJavascriptError(ErrorContent, MethodName) {
-
-		var MainContentContainer = $("#" + constants.MAINCONTENT_CONTAINER_ID);
-		var MessageBox = $("#Notification-Box");
-		var DebugOutput = "";
-		var FriendlyErrorMessage = "Ooops, something went wrong! A team of highly trained monkeys has been dispatched to deal with the situation. If you see them tell them what you did when this happened."
-
-		if (typeof ErrorContent === "object") {
-			DebugOutput = JSON.stringify(ErrorContent);
-		}
-
-		if (debug) {
-			notifyUserOfError( MessageBox, DebugOutput, 0 );
-
-		} else {
-			notifyUserOfError( MessageBox, FriendlyErrorMessage, 0 );
-		}
-
-		console.warn("onJavascriptError triggered by " + MethodName);
-		console.warn(ErrorContent);
+	_show() {
+		this.anchor.style.display = "flex";
 	}
 
-	ajaxLoadButton(enableOrDisable, DOMPointer, Value) {
+	onAJAXCallError() {
 
-		if (enableOrDisable) {
-			DOMPointer.prop("disabled", true);
-			this.transient.ajaxLoaderValue = DOMPointer.val();
-			DOMPointer.val("");
-			DOMPointer.addClass("ajax-loading");
+	}
+
+	onJavascriptError() {
+
+	}
+
+	ajaxLoadButton(enableOrDisable, buttonElement, id=0) {
+		if (!(buttonElement instanceof HTMLButtonElement))
+			throw new Error("Argument 'buttonElement' is NOT an instance of HTMLButtonElement");
+
+		if (enableOrDisable === true) {
+
+			let newId = this.services.get("utils").hash(buttonElement.value);
+			buttonElement.disabled = true;
+			this.ajaxLoadValueMap.set(newId, buttonElement.value);
+			buttonElement.value = "";
+			buttonElement.classList.add(NotificationTypes.LOADING);
+
+			return newId;
 		}
-		else {
-			DOMPointer.prop("disabled", false);
-			DOMPointer.removeClass("ajax-loading");
 
-			if (Value !== undefined && Value.length > 0) {
-				DOMPointer.val(Value.trim())
-			} else {
-				DOMPointer.val( this.transient.ajaxLoaderValue );
-			}
+		buttonElement.disabled = false;
 
-			this.transient.ajaxLoaderValue = "";
+		if (this.ajaxLoadValueMap.has(id)) {
+
+			buttonElement.value = this.ajaxLoadValueMap.get(id);
+			this.ajaxLoadValueMap.delete(id);
 		}
+
+		buttonElement.classList.remove(NotificationTypes.LOADING);
 	}
 
 }
 
-export {Notifications, NotificationTypes};
+export {NotificationManager, NotificationTypes};

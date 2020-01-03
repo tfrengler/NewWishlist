@@ -2,9 +2,14 @@
 
 export class ServiceLocator {
     
-    constructor(services=null) {
+    constructor(services=Symbol("ARGUMENT_UNDEFINED")) {
+        if (!(services instanceof Map))
+            throw new Error("Argument 'services' is NOT an instance of Map: " + services.constructor.name);
 
-        this.services = new Map(services);
+        this.services = services;
+        this.services.set = null;
+        this.services.delete = null;
+
         return Object.freeze(this);
     }
 
