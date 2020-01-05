@@ -6,7 +6,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 	
 	public Authentication function init(required SecurityManager securityManager, required string workingDir) {
 		if (NOT directoryExists(arguments.workingDir))
-			throw(message="Error initializing Authentication.cfc", detail="Directory from argument 'workingDir' does not exist: #arguments.workingDir#");
+			throw(message="Error initializing Authentication", detail="Directory from argument 'workingDir' does not exist: #arguments.workingDir#");
 		
 		variables.security = arguments.SecurityManager
         variables.workingDir = arguments.workingDir;
@@ -18,14 +18,16 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 	}
 
 	// PUBLIC
-
 	public struct function logIn(required string username, required string password, required struct sessionHandle) {
 
 		if (NOT variables.isUser(arguments.username)) return {STATUS_CODE: 1};
 		var user = variables.getUserByName(arguments.username);
 
 		if (variables.isLoggedIn(arguments.username, arguments.sessionHandle))
-			return {STATUS_CODE: 0, TOKEN: user.getToken()};
+			return {STATUS_CODE: 0, DATA: {
+                TOKEN: user.getToken(),
+                DISPLAY_NAME: user.getDisplayName()
+            }};
 
 		var passwordCorrect = variables.security.validatePassword(
             plainPassword=arguments.password, 
@@ -40,41 +42,76 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         user.setSessionID(arguments.sessionHandle.sessionID);
         arguments.sessionHandle.token = token;
 
-		return {STATUS_CODE: 0, TOKEN: token};
+		return {STATUS_CODE: 0, DATA: {
+            TOKEN: token,
+            DISPLAY_NAME: user.getDisplayName()
+        }};
     };
     
-    public boolean function isValidSession(required string token, required struct sessionHandle) {
+    public struct function isValidSession(required string token, required struct sessionHandle) {
 		for(var username in variables.users) {
             var currentUser = variables.users[username];
 
             if (currentUser.getToken() EQ arguments.token AND currentUser.getSessionID() EQ arguments.sessionHandle.sessionID)
-                return true;
+                return {STATUS_CODE: 0, DATA: true};
             
             // if (currentUser.getToken() EQ arguments.token AND currentUser.getSessionID() NEQ arguments.sessionHandle.sessionID)
-                // User is already logged in, but somewhere else (different session). Log to somewhere?
+                // TODO(thomas): User is already logged in, but not at this location (session). Log to somewhere?
         }
 
-        return false;
+        return {STATUS_CODE: 0, DATA: false};
 	};
 
-	public void function logOut(required string token) {
+	public struct function logOut(required string token, required struct sessionHandle) {
 		for(var username in variables.users) {
             var currentUser = variables.users[username];
 
-            if (currentUser.getToken() EQ arguments.token) {
+            if (currentUser.getToken() EQ arguments.token AND currentUser.getSessionID() EQ arguments.sessionHandle.sessionID) {
 
                 currentUser.setToken("");
                 currentUser.setSessionID("");
-                return;
+                return {STATUS_CODE: 0, DATA: null};
 
             }
         }
 
-        return;
+        return {STATUS_CODE: 1, DATA: null};
+    };
+
+    public User function getUserByName(required string name) {
+        for(var username in variables.users) {
+            var currentUser = variables.users[username];
+
+            if (currentUser.getName() EQ arguments.name)
+                return currentUser;
+        }
+
+        return new User(data={dummy: true});
     };
     
-    // PRIVATE
+    public User function getUserByToken(required string token) {
+        for(var username in variables.users) {
+            var currentUser = variables.users[username];
 
+            if (currentUser.getToken() EQ arguments.token)
+                return currentUser;
+        }
+
+        return new User(data={dummy: true});
+    };
+    
+    public User function getUserBySessionID(required string sessionID) {
+        for(var username in variables.users) {
+            var currentUser = variables.users[username];
+
+            if (currentUser.getSessionID() EQ arguments.sessionID)
+                return currentUser;
+        }
+
+        return new User(data={dummy: true});
+	};
+    
+    // PRIVATE
 	private boolean function isLoggedIn(required string username, required struct sessionHandle) {
         var user = variables.getUserByName(arguments.username);
         return len(user.getToken()) GT 0 AND user.getSessionID() EQ arguments.sessionHandle.sessionID;
@@ -89,14 +126,5 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         }
 
         return false;
-	};
-
-	private User function getUserByName(required string name) {
-        for(var username in variables.users) {
-            var currentUser = variables.users[username];
-
-            if (currentUser.getName() EQ arguments.name)
-                return currentUser;
-        }
 	};
 }

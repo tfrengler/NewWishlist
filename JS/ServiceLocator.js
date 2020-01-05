@@ -2,21 +2,21 @@
 
 export class ServiceLocator {
     
-    constructor(services=Symbol("ARGUMENT_UNDEFINED")) {
-        if (!(services instanceof Map))
-            throw new Error("Argument 'services' is NOT an instance of Map: " + services.constructor.name);
-
-        this.services = services;
-        this.services.set = null;
-        this.services.delete = null;
+    constructor() {
+        this._services = Object.create(null);
 
         return Object.freeze(this);
     }
 
-    get(name="EMPTY_SERVICE_NAME") {
-        if (this.services.has(name))
-            return this.services.get(name);
-        
-        throw new Error("No such service: " + name);
+    provide(name="NOT_DEFINED", service=null) {
+        if (!service) return;
+        this._services[name] = service;
+    }
+
+    get(name) {
+        if (this._services[name])
+            return this._services[name];
+
+        return Symbol("NON_EXISTANT_SERVICE");
     }
 }

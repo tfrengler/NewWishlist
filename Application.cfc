@@ -29,7 +29,8 @@
 		<cfset application.mapping = {
             logs: application.normalizePath(path=this.root & config.logFolder),
             userData: application.normalizePath(path=this.root & config.userDataFolder),
-            wishlistData: application.normalizePath(path=this.root & config.wishlistDataFolder)
+            wishlistData: application.normalizePath(path=this.root & config.wishlistDataFolder),
+            tempFiles: application.normalizePath(path=this.root & config.tempFiles)
         } />
 
         <cfset var mapping = "" />
@@ -40,12 +41,13 @@
         </cfloop>
 
         <cfset application.allowedAJAXControllers = {
-            "Authentication": ["logIn", "isValidSession", "logOut"]
+            "authentication": ["logIn", "isValidSession", "logOut"],
+            "wishlists": ["getWishes","saveWish","deleteWish"]
         } />
 
         <cfset application.security = new CFCs.SecurityManager() />
-        <!--- TODO(thomas): Change this to point to the folder from the config-file --->
-        <cfset application.authentication = new CFCs.Authentication(application.security, "#this.root#\66a5afa2-91d2-41d2-81c2-90ea5366a071\Users") />
+        <cfset application.authentication = new CFCs.Authentication(application.security, application.mapping.userData) />
+        <cfset application.wishlists = new CFCs.WishlistManager(application.security, application.authentication, application.mapping.wishlistData) />
 
 		<cfreturn true />
 	</cffunction>

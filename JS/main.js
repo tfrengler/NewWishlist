@@ -14,36 +14,40 @@ import { JSUtils } from "./Utils.js";
 import { NotificationManager } from "./Notifications.js";
 import { Wishlist } from "./Wishlist.js";
 import { Wish } from "./Wish.js";
+import { MainMenu } from "./Controllers/MainMenu.js";
 
-let models = Object.freeze({
+main.models = Object.freeze({
     Wishlist: Wishlist,
     Wish: Wish
 });
 
-main.controllers = Object.freeze({
-    menuDialog: Symbol("NOT_IMPLEMENTED"),
-    headersAndFooters: Symbol("NOT_IMPLEMENTED"),
-    wishlist: Symbol("NOT_IMPLEMENTED"),
-    editWishDialog: Symbol("NOT_IMPLEMENTED")
-});
+main.controllers = Object.create(null);
 
 let eventManager = new Events.EventManager(backendEntryPoint, CFAjaxAuthKey);
-let serviceBundle = new Map();
+let backendServices = new ServiceLocator();
+let controllerServices = new ServiceLocator();
 
-serviceBundle.set("events", eventManager);
-serviceBundle.set("eventTypes", Events.EventTypes);
-serviceBundle.set("utils", JSUtils);
-serviceBundle.set("models", models);
+backendServices.provide("utils", JSUtils);
 
-let serviceLocator = new ServiceLocator(serviceBundle);
+// Services
+let notifications = new NotificationManager(document.getElementById('Notifications'), 2000, backendServices);
+let authentication = new AuthenticationManager(backendEntryPoint, CFAjaxAuthKey, backendServices);
 
-main.authentication = new AuthenticationManager(backendEntryPoint, CFAjaxAuthKey, serviceLocator);
-main.notifications = new NotificationManager(document.getElementById('Notifications'), 2000, serviceLocator);
+controllerServices.provide("utils", JSUtils);
+controllerServices.provide("notifications", notifications);
+controllerServices.provide("events", eventManager);
+controllerServices.provide("eventTypes", Events.EventTypes);
+
+// Controllers
+main.controllers.menuDialog = new MainMenu(authentication, backendEntryPoint, CFAjaxAuthKey, controllerServices);
 
 // Object.freeze(main);
+// Object.freeze(main.controllers);
 console.log("Everything's initialized and ready to rock and roll");
 
+// TODO(thomas): debugging
 window.main = main;
+
 /*
     image/jpeg
     image/bmp
@@ -61,6 +65,7 @@ main: {
 
     controllers: {
         menuDialog: {
+            authentication: {}
             loadWishlist()
             logIn()
             logOut()
@@ -104,7 +109,5 @@ main: {
             onCloseDialog()
         }
     }
-
-    authentication: {}
 }
 */

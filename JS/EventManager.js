@@ -9,6 +9,7 @@ const EventTypes = Object.freeze({
 	"WISH_DELETED": Symbol("WISH_DELETED"),
 	"WISH_EDIT_CHANGES_SAVED": Symbol("WISH_EDIT_CHANGES_SAVED"),
 	"WISHLIST_LOADED": Symbol("WISHLIST_LOADED"),
+	"WISHLIST_RENDERED": Symbol("WISHLIST_RENDERED"),
 	"EDIT_MODE_ENABLED": Symbol("EDIT_MODE_ENABLED"),
 	"EDIT_MODE_DISABLED": Symbol("EDIT_MODE_DISABLED"),
 	"WISH_ADD_DIALOG_OPENED": Symbol("WISH_ADD_DIALOG_OPENED"),
@@ -24,7 +25,7 @@ class Event {
 
 		this.type = type || Symbol("ARGUMENT_UNDEFINED");
 		this.timeStamp = performance.now();
-		this.data = (typeof data === typeof {} ? Object.freeze(data) : {});
+		this.data = (typeof data === typeof {} ? Object.freeze(data) : null);
 
 		return Object.freeze(this);
 	}

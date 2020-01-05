@@ -32,7 +32,7 @@
 			}
 		</script>
 
-		<script type="module" src="JS/main.js" ></script>
+		<script type="module" defer src="JS/main.js" ></script>
 	</head>
 
     <body>
@@ -45,12 +45,13 @@
 						<h5 class="modal-title">WISHLISTS</h5>
 					</div>
 
-					<div class="modal-body">
+					<div class="modal-body" id="WishlistContainer" >
+						<!--- TODO(thomas): Get users from authentication in application, enumerate and generate a button per user --->
 						<p>
-							<button class="btn btn-info btn-block">CARLETTE</button>
+							<button data-wishlist-owner-id="1" data-wishlist-owner-name="CARLETTE" class="btn btn-info btn-block">CARLETTE</button>
 						</p>
 						<p>
-							<button class="btn btn-info btn-block">THOMAS</button>
+							<button data-wishlist-owner-id="2" data-wishlist-owner-name="THOMAS" class="btn btn-info btn-block">THOMAS</button>
 						</p>
 					</div>
 
@@ -62,11 +63,11 @@
 						<input type="text" id="Username" class="form-control" placeholder="Username" />
 						<input type="text" id="Password" class="form-control" placeholder="Password" />
 
-						<button type="button" class="btn btn-outline-primary">
+						<button id="LogIn" type="button" class="btn btn-outline-primary">
 							LOG IN
 							<i class="fas fa-cog fa-spin text-warning"></i>
 						</button>
-						<button type="button" class="btn btn-outline-info">LOG OUT</button>
+						<button id="LogOut" type="button" class="btn btn-outline-info">LOG OUT</button>
 					</div>
 
 					<div class="modal-footer">

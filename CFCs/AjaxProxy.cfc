@@ -11,7 +11,7 @@
 		<cfargument name="parameters" type="string" required="false" default="{}" hint="A structure of key/value pairs of arguments to the method you're calling." />
 		<cfargument name="authKey" type="string" required="false" default="<:EMPTY:>" hint="A unique hash key that is checked against an internal validator. This exists to prevent people from using this proxy remotely without authorization." />
 
-		<cfset var returnData = {RESPONSE_CODE: 0, DATA: nullValue()} />
+		<cfset var returnData = {RESPONSE_CODE: 0, RESPONSE: nullValue()} />
         <cfset var deserializedParameters = {} />
 
 		<cftry>
@@ -29,18 +29,17 @@
         <cftry>
             <!--- Include an 'uploadFiles'-key of any value in argument 'parameters' and the files on the form will be uploaded. The result of the upload will be put in uploadFiles-key in the parameters --->
             <cfif structKeyExists(deserializedParameters, "uploadFiles") AND isArray(deserializedParameters.uploadFiles, 1) >
-                <cfset var uploadedFiles = {
-                    results: {},
-                    errors: {}
-                } />
+                <cfset var uploadedFiles = {} />
 
-                <cffile
-                    action="upload"
-                    destination=#application.mapping.tempFiles#
-                    mode="readonly"
-                    nameconflict="makeunique"
-                    result="deserializedParameters.uploadFiles"
-                />
+                <cfloop array=#deserializedParameters.uploadFiles# index="currentFormFileField" >
+                    <cfset uploadedFiles[currentFormFileField] = fileUpload(
+                        destination=application.mapping.tempFiles,
+                        filefield=currentFormFileField,
+                        nameConflict="makeunique"
+                    ) />
+                </cfloop>
+
+                <cfset deserializedParameters.uploadFiles = uploadedFiles />
             </cfif>
 
             <cfcatch>
@@ -93,7 +92,7 @@
 		</cftry>
 
         <cfif isStruct(controllerResponse) >
-            <cfset returnData["DATA"] = controllerResponse />
+            <cfset returnData["RESPONSE"] = controllerResponse />
             <cfreturn returnData />
         </cfif>
         
