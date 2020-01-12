@@ -1,6 +1,6 @@
 /* 
 global
-    CFAjaxAuthKey
+	CFAjaxAuthKey
 */
 "use strict";
 
@@ -10,30 +10,18 @@ const main = Object.create(null);
 import { AuthenticationManager } from "./Authentication.js";
 import * as Events from "./EventManager.js";
 import { ServiceLocator } from "./ServiceLocator.js";
-import { JSUtils } from "./Utils.js";
 import { NotificationManager } from "./Notifications.js";
-import { Wishlist } from "./Wishlist.js";
-import { Wish } from "./Wish.js";
 import { MainMenu } from "./Controllers/MainMenu.js";
-
-main.models = Object.freeze({
-    Wishlist: Wishlist,
-    Wish: Wish
-});
 
 main.controllers = Object.create(null);
 
 let eventManager = new Events.EventManager(backendEntryPoint, CFAjaxAuthKey);
-let backendServices = new ServiceLocator();
 let controllerServices = new ServiceLocator();
 
-backendServices.provide("utils", JSUtils);
-
 // Services
-let notifications = new NotificationManager(document.getElementById('Notifications'), 2000, backendServices);
-let authentication = new AuthenticationManager(backendEntryPoint, CFAjaxAuthKey, backendServices);
+let notifications = new NotificationManager(document.getElementById('Notifications'), 2000);
+let authentication = new AuthenticationManager(backendEntryPoint, CFAjaxAuthKey);
 
-controllerServices.provide("utils", JSUtils);
 controllerServices.provide("notifications", notifications);
 controllerServices.provide("events", eventManager);
 controllerServices.provide("eventTypes", Events.EventTypes);
@@ -49,65 +37,65 @@ console.log("Everything's initialized and ready to rock and roll");
 window.main = main;
 
 /*
-    image/jpeg
-    image/bmp
-    image/png
-    image/tiff
-    image/webp
+	image/jpeg
+	image/bmp
+	image/png
+	image/tiff
+	image/webp
 */
 
 /*
 
 main: {
 
-    // All controllers have an element-map with an internal string name as key, and the value is a handle to each permanent/static DOM element
-    // All controllers also have an init-function which serves to set up all initial, permanent event handlers
+	// All controllers have an element-map with an internal string name as key, and the value is a handle to each permanent/static DOM element
+	// All controllers also have an init-function which serves to set up all initial, permanent event handlers
 
-    controllers: {
-        menuDialog: {
-            authentication: {}
-            loadWishlist()
-            logIn()
-            logOut()
-            onLogIn()
-            onLogOut()
-        }
+	controllers: {
+		menuDialog: {
+			authentication: {}
+			loadWishlist()
+			logIn()
+			logOut()
+			onLogIn()
+			onLogOut()
+		}
 
-        headersAndFooters: {
-            onLoadWishlist()
-            onLoggedIn()
-            onLoggedOut()
-            onEnableEditMode()
-            onDisableEditMode()
-        }
+		headersAndFooters: {
+			onLoadWishlist()
+			onLoggedIn()
+			onLoggedOut()
+			onEnableEditMode()
+			onDisableEditMode()
+		}
 
-        wishlist: {
-            state: {wishlist}
-            addNewWish()
-            delete()
-            edit()
-            onOpenAddDialog()
-            onOpenEditDialog()
-            onSaveChanges()
-            onAddedNewWish()
-            onDeletedWish()
-            onWishlistLoaded()
-            renderWish()
-            removeRenderedWish()
-            onLoggedIn()
-            onLoggedOut()
-            onEnableEditMode()
-            onDisableEditMode()
-        }
+		wishlist: {
+			state: {wishlist}
+			addNewWish()
+			delete()
+			edit()
+			onOpenAddDialog()
+			onOpenEditDialog()
+			onSaveChanges()
+			onAddedNewWish()
+			onDeletedWish()
+			onWishlistLoaded()
+			renderWish()
+			removeRenderedWish()
+			onLoggedIn()
+			onLoggedOut()
+			onEnableEditMode()
+			onDisableEditMode()
+		}
 
-        editWishDialog: {
-            onSelectPictureForUpload()
-            onProvidePictureLink()
-            onPictureValidated()
-            onPictureNotValidate()
-            onSaveChanges()
-            onCloseDialog()
-        }
-    }
+		editWishDialog: {
+			onSelectPictureForUpload()
+			onProvidePictureLink()
+			onPictureValidated()
+			onPictureNotValidate()
+			onSaveChanges()
+			onCloseDialog()
+		}
+	}
 }
 */

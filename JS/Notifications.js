@@ -8,10 +8,9 @@ const NotificationTypes = Object.freeze({
 });
 
 const CSSClassMap = Object.create(null);
-CSSClassMap[NotificationTypes.SUCCESS] = "TEST_SUCCESS";
-CSSClassMap[NotificationTypes.WARNING] = "TEST_WARNING";
-CSSClassMap[NotificationTypes.ERROR] = "TEST_ERROR";
-CSSClassMap[NotificationTypes.LOADING] = "TEST_LOADING";
+CSSClassMap[NotificationTypes.SUCCESS] = "notification-success";
+CSSClassMap[NotificationTypes.WARNING] = "notification-warning";
+CSSClassMap[NotificationTypes.ERROR] = "notification-error";
 Object.freeze(CSSClassMap);
 
 class NotificationManager {
@@ -20,13 +19,21 @@ class NotificationManager {
 		if (!(anchor instanceof HTMLElement))
 			throw new Error("Argument 'anchor' is NOT an instance of HTMLElement: " + anchor.constructor.name);
 
-		this.anchor = anchor || Symbol("ARGUMENT_UNDEFINED");
-		this.timeout = timeout || 1000;
-		this.services = services;
-		this.ajaxLoadValueMap = new Map();
+		this._anchor = anchor || Symbol("ARGUMENT_UNDEFINED");
+		this._globalTimeout = timeout || 1000;
+		this._services = services;
+		this._ajaxLoadValueMap = new Map();
 
 		console.log("NotificationManager initialized");
 		return Object.freeze(this);
+	}
+
+	_createNotification() {
+		const newNotification = document.createElement("span");
+		newNotification.className = "notification-message p-3 rounded hidden";
+		this._anchor.appendChild(newNotification);
+
+		return newNotification;
 	}
 
 	notifySuccess(message, timeout=0) {
@@ -47,57 +54,21 @@ class NotificationManager {
 
 	_notify(type, message, timeout=0) {
 
-		this._hide();
-		this.anchor.classList.remove(...Object.keys(CSSClassMap));
-		this.anchor.classList.add(CSSClassMap[type]);
-		this.anchor.innerText = message;
-		this._show();
+		const notification = this._createNotification();
 
-		setTimeout(function() {this._hide()}, timeout || this.timeout);
+		notification.classList.remove(...Object.keys(CSSClassMap));
+		notification.classList.add(CSSClassMap[type]);
+		notification.innerText = message;
+		notification.classList.remove("hidden");
+
+		setTimeout(
+			()=> {
+				notification.classList.add("fade-out");
+				setTimeout(()=> this._anchor.removeChild(notification), 1500);
+			},
+			timeout || this._globalTimeout
+		);
 	}
-
-	_hide() {
-		this.anchor.style.display = "hidden";
-	}
-
-	_show() {
-		this.anchor.style.display = "flex";
-	}
-
-	onAJAXCallError() {
-
-	}
-
-	onJavascriptError() {
-
-	}
-
-	ajaxLoadButton(enableOrDisable, buttonElement, id=0) {
-		if (!(buttonElement instanceof HTMLButtonElement))
-			throw new Error("Argument 'buttonElement' is NOT an instance of HTMLButtonElement");
-
-		if (enableOrDisable === true) {
-
-			let newId = this.services.get("utils").hash(buttonElement.value);
-			buttonElement.disabled = true;
-			this.ajaxLoadValueMap.set(newId, buttonElement.value);
-			buttonElement.value = "";
-			buttonElement.classList.add(NotificationTypes.LOADING);
-
-			return newId;
-		}
-
-		buttonElement.disabled = false;
-
-		if (this.ajaxLoadValueMap.has(id)) {
-
-			buttonElement.value = this.ajaxLoadValueMap.get(id);
-			this.ajaxLoadValueMap.delete(id);
-		}
-
-		buttonElement.classList.remove(NotificationTypes.LOADING);
-	}
-
 }
 
 export {NotificationManager, NotificationTypes};

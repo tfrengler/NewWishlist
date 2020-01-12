@@ -1,6 +1,7 @@
 "use strict";
 
 import { Wish } from "./Wish.js";
+import { JSUtils } from "./Utils.js";
 
 export class Wishlist {
 
@@ -10,51 +11,30 @@ export class Wishlist {
         this._backendEntryPoint = backendEntryPoint;
         this._ajaxAuthKey = ajaxAuthKey;
         this._backendController = "wishlists";
-        this._method = "call";
 
         return Object.freeze(this);
     }
 
     async load(userID=-1) {
 
-        const POSTPayload = new FormData();
+		const backendRequest = await JSUtils.fetchRequest(
+			this._backendEntryPoint,
+			this._ajaxAuthKey,
+			this._backendController,
+			"getWishes",
+			{userID: parseInt(userID)}
+		);
 
-		POSTPayload.append("authKey", this._ajaxAuthKey);
-		POSTPayload.append("controller", this._backendController)
-		POSTPayload.append("function", "getWishes");
-		POSTPayload.append("method", this._method);
-		POSTPayload.append("parameters", JSON.stringify({userID: parseInt(userID)}));
+		if (backendRequest.ERROR === false) {
+			for (let wishID in backendRequest.DATA) {
+				let currentWish = backendRequest.DATA[wishID];
+				this._wishes.set(parseInt(wishID), new Wish(parseInt(wishID), currentWish.picture, currentWish.description, currentWish.links));
+			}
 
-		const response = await window.fetch(this._backendEntryPoint, {
-			credentials: "include",
-			mode: "same-origin",
-			method: "POST",
-			headers: {
-				"Accept": "application/json"
-			},
-			body: POSTPayload
-		});
+			return {ERROR: false};
+		}
 
-		if (response.status !== 200)
-			return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed for some reason (status ${response.status})`});
-		
-		if (!response.json)
-            return Object.freeze({ERROR: true, DATA: "Return data from the backend entry point could not be parsed as JSON"});
-        
-        const decodedResponse = await response.json();
-
-		if (decodedResponse.RESPONSE_CODE !== 0)
-			return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed when acting on request data (${decodedResponse.RESPONSE_CODE})`});
-
-		if (decodedResponse.RESPONSE_CODE === 0 && decodedResponse.RESPONSE.STATUS_CODE !== 0)
-            return Object.freeze({ERROR: true, DATA: decodedResponse.RESPONSE.STATUS_CODE});
-        
-        for (let wishID in decodedResponse.RESPONSE.DATA) {
-            let currentWish = decodedResponse.RESPONSE.DATA[wishID];
-            this._wishes.set(parseInt(wishID), new Wish(parseInt(wishID), currentWish.picture, currentWish.description, currentWish.links));
-        }
-
-        return Object.freeze({ERROR: false, DATA: null});
+		return backendRequest;
     }
 
     addNewWish() {
@@ -65,89 +45,49 @@ export class Wishlist {
     }
 
     async deleteWish(id=-1, token="UNDEFINED_ARGUMENT") {
-        const POSTPayload = new FormData();
-
-		POSTPayload.append("authKey", this._ajaxAuthKey);
-		POSTPayload.append("controller", this._backendController)
-		POSTPayload.append("function", "deleteWish");
-		POSTPayload.append("method", this._method);
-		POSTPayload.append("parameters", JSON.stringify({
-            id: id,
-            token: token,
-            sessionHandle: true
-        }));
-
-		const response = await window.fetch(this._backendEntryPoint, {
-			credentials: "include",
-			mode: "same-origin",
-			method: "POST",
-			headers: {
-				"Accept": "application/json"
-			},
-			body: POSTPayload
-		});
-
-		if (response.status !== 200)
-			return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed for some reason (status ${response.status})`});
 		
-		if (!response.json)
-            return Object.freeze({ERROR: true, DATA: "Return data from the backend entry point could not be parsed as JSON"});
-        
-        const decodedResponse = await response.json();
+		const backendRequest = await JSUtils.fetchRequest(
+			this._backendEntryPoint,
+			this._ajaxAuthKey,
+			this._backendController,
+			"deleteWish",
+			{
+				id: id,
+				token: token,
+				sessionHandle: true
+			}
+		);
 
-		if (decodedResponse.RESPONSE_CODE !== 0)
-			return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed when acting on request data (${decodedResponse.RESPONSE_CODE})`});
+		if (backendRequest.ERROR === false) {
+			this._wishes.delete(id);
+			return {ERROR: false}; 
+		}
 
-		if (decodedResponse.RESPONSE_CODE === 0 && decodedResponse.RESPONSE.STATUS_CODE !== 0)
-            return Object.freeze({ERROR: true, DATA: decodedResponse.RESPONSE.STATUS_CODE});
-        
-        this._wishes.delete(id);
-
-        return Object.freeze({ERROR: false, DATA: null});
+		return backendRequest;
     }
 
     async editWish(wish={}, token="UNDEFINED_ARGUMENT") {
         if (!(wish instanceof Wish))
             return Object.freeze({ERROR: true, DATA: `Argument 'wish' is not an instance of Wish (${wish.constructor.name})`});
 
-        const POSTPayload = new FormData();
+		const backendRequest = await JSUtils.fetchRequest(
+			this._backendEntryPoint,
+			this._ajaxAuthKey,
+			this._backendController,
+			"saveWish",
+			{
+				id: wish.getId(),
+				token: token,
+				data: wish.getData(),
+				sessionHandle: true
+			}
+		);
 
-		POSTPayload.append("authKey", this._ajaxAuthKey);
-		POSTPayload.append("controller", this._backendController)
-		POSTPayload.append("function", "saveWish");
-		POSTPayload.append("method", this._method);
-		POSTPayload.append("parameters", JSON.stringify({
-            id: wish.getId(),
-            token: token,
-            data: wish.serialize(),
-            sessionHandle: true
-        }));
+		if (backendRequest.ERROR === false) {
+			this._wishes.set(wish.id, wish);
+			return {ERROR: false};
+		}
 
-		const response = await window.fetch(this._backendEntryPoint, {
-			credentials: "include",
-			mode: "same-origin",
-			method: "POST",
-			headers: {
-				"Accept": "application/json"
-			},
-			body: POSTPayload
-		});
-
-		if (response.status !== 200)
-			return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed for some reason (status ${response.status})`});
-		
-		if (!response.json)
-            return Object.freeze({ERROR: true, DATA: "Return data from the backend entry point could not be parsed as JSON"});
-        
-        const decodedResponse = await response.json();
-
-		if (decodedResponse.RESPONSE_CODE !== 0)
-			return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed when acting on request data (${decodedResponse.RESPONSE_CODE})`});
-
-		if (decodedResponse.RESPONSE_CODE === 0 && decodedResponse.RESPONSE.STATUS_CODE !== 0)
-            return Object.freeze({ERROR: true, DATA: decodedResponse.RESPONSE.STATUS_CODE});
-        
-        this._wishes.set(wish.id, wish);
-        return Object.freeze({ERROR: false, DATA: null});
+        return backendRequest;
     }
 }

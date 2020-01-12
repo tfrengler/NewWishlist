@@ -1,6 +1,7 @@
 "use strict";
 
 import { Wishlist } from "../Wishlist.js";
+import { JSUtils } from "../Utils.js";
 
 export class MainMenu {
 
@@ -19,112 +20,127 @@ export class MainMenu {
 			passwordInput: document.getElementById("Password"),
 			wishlistContainer: document.getElementById("WishlistContainer"),
 			loginButton: document.getElementById("LogIn"),
-			logoutButton: document.getElementById("LogOut")
+			loginButtonLoader: document.querySelector("#LogIn i"),
+			logoutButtonLoader: document.querySelector("#LogOut i"),
+			logoutButton: document.getElementById("LogOut"),
+			wishlistButtons: document.querySelectorAll("#WishlistContainer button"), // An array of elements!
+			wishlistLoader: document.getElementById("WishlistLoader")
 		});
 
-		this._setupEventHandlers();
+		this._init();
 		
-		console.log(`MainMenu-controller initialized with backendEntryPoint '${backendEntryPoint}' and ajaxAuthKey: ${ajaxAuthKey}`);
+		console.log("MainMenu-controller initialized");
 		return Object.freeze(this);
 	}
 
-	_setupEventHandlers() {
+	_init() {
 		this._elements.loginButton.addEventListener("click", (event) => this.logIn(event));
 		this._elements.logoutButton.addEventListener("click", (event) => this.logOut(event));
+
+		this._elements.usernameInput.addEventListener("keyup", ()=> this.onUserCredentialsInput());
+		this._elements.passwordInput.addEventListener("keyup", ()=> this.onUserCredentialsInput());
 		
-		Array.from(this._elements.wishlistContainer.getElementsByTagName("button")).forEach(button=> {
-			button.addEventListener("click", (event) => this.loadWishlist(event) )
-		})
+		this._elements.wishlistButtons.forEach(button=> button.addEventListener("click", (event) => this.loadWishlist(event)));
 	}
 
 	// EVENT HANDLERS
-	loadWishlist(event) {
-		const wishlist = new Wishlist(this._backendEntryPoint, this._ajaxAuthKey);
-		wishlist.load(event.srcElement.dataset["wishlistOwnerId"] || -1)
-		.then(response=> {
-			if (response.ERROR === true) {
-				// TODO(thomas): What to do?
-				console.error("Loading the wishlist failed :(");
-				return;
-			}
-
-			this._services.get("events").trigger(this._services.get("eventTypes").WISHLIST_LOADED, wishlist);
-		});
-	}
-
-	logIn(event) {
-		event.srcElement.disabled = true;
-
-		this._authentication.logIn(
-			this._elements.usernameInput.value,
-			this._elements.passwordInput.value
-		)
-		.then(response => {
-			if (!response.ERROR) {
-				this._elements.usernameInput.value = "";
-				this._elements.passwordInput.value = "";
-				event.srcElement.innerText = "LOGGED IN AS: " + this._authentication.getUserDisplayName();
-				this._elements.usernameInput.disabled = true;
-				this._elements.passwordInput.disabled = true;
-
-				this._services.get("events").trigger(
-					this._services.get("eventTypes").LOGIN_SUCCESS, 
-					{
-						token: this._authentication.getToken(),
-						userDisplayName: this._authentication.getUserDisplayName()
-					}
-				)
-				return;
-			}
-
-			// TODO(thomas): What happens if there's an error?
-			this._services.get("events").trigger(this._services.get("eventTypes").LOGIN_FAILED);
-			event.srcElement.disabled = false;
-
-			return;
-		});
-	}
-
-	logOut(event) {
-		event.srcElement.disabled = true;
-
-		this._authentication.logOut(this._authentication.getToken())
-		.then(response => {
-			if (response.ERROR === true) {
-				// TODO(thomas): What to do? This is quite serious
-				console.error("Logout failed...? Wut?");
-				return;
-			}
-
-			this._elements.usernameInput.value = "";
-			this._elements.passwordInput.value = "";
-			this._elements.loginButton.innerText = "LOG IN";
-
+	onUserCredentialsInput() {
+		if (this._elements.usernameInput.value.trim().length > 0 && this._elements.passwordInput.value.trim().length > 0) {
 			this._elements.loginButton.disabled = false;
-			this._elements.usernameInput.disabled = false;
-			this._elements.passwordInput.disabled = false;
-
-			this._services.get("events").trigger(this._services.get("eventTypes").LOGOUT_SUCCESS);
-			event.srcElement.disabled = false;
-
 			return;
-		});
+		}
+
+		this._elements.loginButton.disabled = true;
 	}
 
-	// CALLBACKS
-	onLogIn() {
+	async loadWishlist(event) {
 
+		this._elements.wishlistButtons.forEach(button=> button.disabled = true);
+		this._elements.wishlistLoader.classList.remove("hidden");
+
+		const wishlist = new Wishlist(this._backendEntryPoint, this._ajaxAuthKey);
+		const loadWishlistResponse = await wishlist.load(event.srcElement.dataset["wishlistOwnerId"] || -1);
+
+		await JSUtils.wait(3000);
+
+		if (loadWishlistResponse.ERROR) {
+			this._elements.wishlistLoader.classList.add("hidden");
+			this._elements.wishlistButtons.forEach(button=> button.disabled = false);
+			this._services.get("notifications").notifyError("Oops, failed to load the wishlist\nContact the admin", 4000);
+			return;
+		}
+
+		this._elements.wishlistLoader.classList.add("hidden");
+		this._elements.wishlistButtons.forEach(button=> button.disabled = false);
+
+		this._services.get("notifications").notifySuccess("Wishload loaded");
+		this._services.get("events").trigger(this._services.get("eventTypes").WISHLIST_LOADED, wishlist);
 	}
 
-	onLogOut() {
+	async logIn(event) {
 
+		event.srcElement.disabled = true;
+		this._elements.loginButtonLoader.classList.remove("hidden");
+
+		const loginResponse = await this._authentication.logIn(
+			this._elements.usernameInput.value.trim(),
+			this._elements.passwordInput.value.trim()
+		);
+
+		if (loginResponse.ERROR) {
+			event.srcElement.disabled = false;
+			this._services.get("events").trigger(this._services.get("eventTypes").LOGIN_FAILED);
+			this._elements.loginButtonLoader.classList.add("hidden");
+
+			this._services.get("notifications").notifyError("The username or password is not correct");
+			return;
+		}
+
+		event.srcElement.innerText = "LOGGED IN: " + this._authentication.getUserDisplayName();
+
+		this._elements.usernameInput.value = "";
+		this._elements.passwordInput.value = "";
+
+		this._elements.usernameInput.disabled = true;
+		this._elements.passwordInput.disabled = true;
+		this._elements.logoutButton.disabled = false;
+
+		this._elements.loginButtonLoader.classList.add("hidden");
+		this._services.get("notifications").notifySuccess("You have been logged in");
+
+		this._services.get("events").trigger(
+			this._services.get("eventTypes").LOGIN_SUCCESS, 
+			{
+				token: this._authentication.getToken(),
+				userDisplayName: this._authentication.getUserDisplayName()
+			}
+		)
 	}
 
-	onLoadWishlist() {
+	async logOut(event) {
 
-	}
+		event.srcElement.disabled = true;
+		this._elements.logoutButtonLoader.classList.remove("hidden");
+		const logoutResponse = await this._authentication.logOut(this._authentication.getToken());
 
-	onCloseMenu() {
+		if (logoutResponse.ERROR === true) {
+			event.srcElement.disabled = false;
+			this._elements.logoutButtonLoader.classList.add("hidden");
+			this._services.get("notifications").notifyError("Oops, failed to log out\nContact the admin", 4000);
+			return;
+		}
 
+		this._elements.usernameInput.value = "";
+		this._elements.passwordInput.value = "";
+		this._elements.loginButton.innerText = "LOG IN";
+
+		this._elements.usernameInput.disabled = false;
+		this._elements.passwordInput.disabled = false;
+
+		event.srcElement.disabled = false;
+		this._elements.logoutButtonLoader.classList.add("hidden");
+
+		this._services.get("notifications").notifySuccess("You have been logged out");
+		this._services.get("events").trigger(this._services.get("eventTypes").LOGOUT_SUCCESS);
 	}
 }

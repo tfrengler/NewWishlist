@@ -43,6 +43,7 @@
 
 					<div class="modal-header">
 						<h5 class="modal-title">WISHLISTS</h5>
+						<i id="WishlistLoader" class="fas fa-spinner fa-spin text-warning fa-2x hidden"></i>
 					</div>
 
 					<div class="modal-body" id="WishlistContainer" >
@@ -63,11 +64,14 @@
 						<input type="text" id="Username" class="form-control" placeholder="Username" />
 						<input type="text" id="Password" class="form-control" placeholder="Password" />
 
-						<button id="LogIn" type="button" class="btn btn-outline-primary">
+						<button id="LogIn" type="button" class="btn btn-primary" disabled>
 							LOG IN
-							<i class="fas fa-cog fa-spin text-warning"></i>
+							<i class="fas fa-cog fa-spin text-warning hidden"></i>
 						</button>
-						<button id="LogOut" type="button" class="btn btn-outline-info">LOG OUT</button>
+						<button id="LogOut" type="button" class="btn btn-info" disabled>
+							LOG OUT
+							<i class="fas fa-cog fa-spin text-warning hidden"></i>
+						</button>
 					</div>
 
 					<div class="modal-footer">
@@ -273,9 +277,9 @@
 
 		<!--- NOTIFICATIONS --->
 		<div id="Notifications">
-			<!--- <span class="notification-message p-3 rounded alert-success" >Something went right</span> --->
-			<!--- <span class="notification-message p-3 rounded alert-danger" >Something went wrong</span> --->
-			<!--- <span class="notification-message p-3 rounded alert-warning" >Something has potential</span> --->
+			<!--- <span class="notification-message p-3 rounded alert-success" >Something went right</span>
+			<span class="notification-message p-3 rounded alert-danger" >Something went wrong</span>
+			<span class="notification-message p-3 rounded alert-warning" >Something has potential</span> --->
 		</div>
 
 		<ol class="breadcrumb fixed-bottom rounded-0 pt-3 mb-0">
