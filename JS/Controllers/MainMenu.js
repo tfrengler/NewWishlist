@@ -1,7 +1,6 @@
 "use strict";
 
 import { Wishlist } from "../Wishlist.js";
-import { JSUtils } from "../Utils.js";
 
 export class MainMenu {
 
@@ -24,7 +23,8 @@ export class MainMenu {
 			logoutButtonLoader: document.querySelector("#LogOut i"),
 			logoutButton: document.getElementById("LogOut"),
 			wishlistButtons: document.querySelectorAll("#WishlistContainer button"), // An array of elements!
-			wishlistLoader: document.getElementById("WishlistLoader")
+			wishlistLoader: document.getElementById("WishlistLoader"),
+			closeMenuButton: document.getElementById("CloseMenu")
 		});
 
 		this._init();
@@ -61,8 +61,6 @@ export class MainMenu {
 		const wishlist = new Wishlist(this._backendEntryPoint, this._ajaxAuthKey);
 		const loadWishlistResponse = await wishlist.load(event.srcElement.dataset["wishlistOwnerId"] || -1);
 
-		await JSUtils.wait(3000);
-
 		if (loadWishlistResponse.ERROR) {
 			this._elements.wishlistLoader.classList.add("hidden");
 			this._elements.wishlistButtons.forEach(button=> button.disabled = false);
@@ -72,6 +70,7 @@ export class MainMenu {
 
 		this._elements.wishlistLoader.classList.add("hidden");
 		this._elements.wishlistButtons.forEach(button=> button.disabled = false);
+		this._elements.closeMenuButton.click();
 
 		this._services.get("notifications").notifySuccess("Wishload loaded");
 		this._services.get("events").trigger(this._services.get("eventTypes").WISHLIST_LOADED, wishlist);

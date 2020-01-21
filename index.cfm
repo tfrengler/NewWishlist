@@ -75,7 +75,7 @@
 					</div>
 
 					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" data-dismiss="modal">CLOSE</button>
+						<button type="button" id="CloseMenu" class="btn btn-primary" data-dismiss="modal">CLOSE</button>
 					</div>
 				</div>
 			</div>
@@ -165,7 +165,7 @@
 
 		<!--- MAIN CONTAINER --->
         <main class="container-fluid">
-            <cfdump var=#session# />
+            <!--- <cfdump var=#session# /> --->
 			
 			<div class="row">
 

@@ -39,20 +39,15 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 	}
 
 	public struct function saveWish(required numeric id, required struct data, required string token, required struct sessionHandle) {
-		var user = variables.authentication.getUserByToken();
-		
-		if (user.getId() EQ nullValue())
+		if (!variables.authentication.isValidSession(arguments.token, arguments.sessionHandle))
 			return {STATUS_CODE: 1};
-
-		if (user.getSessionID() NEQ arguments.sessionHandle.sessionID)
-			return {STATUS_CODE: 2};
 
 		if (
 			NOT structKeyExists(arguments.data, "description") OR
 			NOT structKeyExists(arguments.data, "picture") OR
 			NOT structKeyExists(arguments.data, "links")
 		)
-		return {STATUS_CODE: 3};
+		return {STATUS_CODE: 2};
 
 		var wishlistDir = "#variables.workingDir#/#user.getId()#";
 		var wishlistFilePath = "#wishlistDir#/#arguments.id#";
@@ -62,7 +57,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 		}
 		catch(error) {
 			// TODO(thomas): Probably need to dump this somewhere for debugging
-			return {STATUS_CODE: 4};
+			return {STATUS_CODE: 3};
 		}
 
 		existingWish.description = (len(arguments.data.description) GT 0 ? arguments.data.description : existingWish.description);
@@ -74,26 +69,21 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 		}
 		catch(error) {
 			// TODO(thomas): Probably need to dump this somewhere for debugging
-			return {STATUS_CODE: 5};
+			return {STATUS_CODE: 4};
 		}
 
 		return {STATUS_CODE: 0};
 	}
 
 	public struct function deleteWish(required numeric id, required string token, required struct sessionHandle) {
-		var user = variables.authentication.getUserByToken();
-		
-		if (user.getId() EQ nullValue())
+		if (!variables.authentication.isValidSession(arguments.token, arguments.sessionHandle))
 			return {STATUS_CODE: 1};
-
-		if (user.getSessionID() NEQ arguments.sessionHandle.sessionID)
-			return {STATUS_CODE: 2};
 
 		var wishlistDir = "#variables.workingDir#/#user.getId()#";
 		var wishlistFilePath = "#wishlistDir#/#arguments.id#";
 
 		if (NOT fileExists(wishlistFilePath))
-			return {STATUS_CODE: 1};
+			return {STATUS_CODE: 2};
 		
 		// fileDelete(wishlistFilePath);
 		return {STATUS_CODE: 0};

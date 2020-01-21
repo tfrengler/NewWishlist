@@ -48,18 +48,18 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         }};
     };
     
-    public struct function isValidSession(required string token, required struct sessionHandle) {
+    public boolean function isValidSession(required string token, required struct sessionHandle) {
 		for(var username in variables.users) {
             var currentUser = variables.users[username];
 
             if (currentUser.getToken() EQ arguments.token AND currentUser.getSessionID() EQ arguments.sessionHandle.sessionID)
-                return {STATUS_CODE: 0, DATA: true};
+                return true;
             
             // if (currentUser.getToken() EQ arguments.token AND currentUser.getSessionID() NEQ arguments.sessionHandle.sessionID)
                 // TODO(thomas): User is already logged in, but not at this location (session). Log to somewhere?
         }
 
-        return {STATUS_CODE: 0, DATA: false};
+        return false;
 	};
 
 	public struct function logOut(required string token, required struct sessionHandle) {

@@ -41,7 +41,7 @@
         </cfloop>
 
         <cfset application.allowedAJAXControllers = {
-            "authentication": ["logIn", "isValidSession", "logOut"],
+            "authentication": ["logIn", "logOut"],
             "wishlists": ["getWishes","saveWish","deleteWish"]
         } />
 

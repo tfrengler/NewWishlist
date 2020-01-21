@@ -52,22 +52,8 @@ main: {
 	// All controllers also have an init-function which serves to set up all initial, permanent event handlers
 
 	controllers: {
-		menuDialog: {
-			authentication: {}
-			loadWishlist()
-			logIn()
-			logOut()
-			onLogIn()
-			onLogOut()
-		}
-
-		headersAndFooters: {
-			onLoadWishlist()
-			onLoggedIn()
-			onLoggedOut()
-			onEnableEditMode()
-			onDisableEditMode()
-		}
+		mainMenu: {}
+		headersAndFooters: {}
 
 		wishlist: {
 			state: {wishlist}
