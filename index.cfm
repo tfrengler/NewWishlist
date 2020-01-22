@@ -169,13 +169,13 @@
 			
 			<div class="row">
 
-				<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light">
+				<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light mb-3">
 
-					<!--- <div class="wish-item wish-edit p-3" >
+					<div class="wish-item wish-edit p-3" >
 						<button id="EditWish_X" class="btn btn-warning" data-toggle="modal" data-target="#EditWish" >
 							<i class="fas fa-edit fa-3x"></i>
 						</button>
-					</div> --->
+					</div>
 
 					<div class="wish-item wish-image border rounded mr-3 overflow-hidden">
 						<img onerror="onImageNotFound(this)" class="rounded" src="Media/Images/xxx.jpg" referrerpolicy="no-referrer" validate="never" />
@@ -200,19 +200,17 @@
 						</i></div>
 					</div>
 
-					<!--- <div class="wish-item wish-delete p-3" >
+					<div class="wish-item wish-delete p-3" >
 						<button id="DeleteWish_X" class="btn btn-danger" >
 							<i class="fas fa-trash-alt fa-3x"></i>
 						</button>
-					</div> --->
+					</div>
 				</section>
 
 			</div>
 
-			<hr/>
-
 			<div class="row">
-				<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light">
+				<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light mb-3">
 
 					<div class="wish-item wish-edit p-3" >
 						<button id="EditWish_X" class="btn btn-warning" data-toggle="modal" data-target="#EditWish" >
@@ -265,8 +263,6 @@
 				</section>
 			</div>
 
-			<hr/>
-
 			<div class="row">
 				<button id="AddWish" class="btn btn-success" data-toggle="modal" data-target="#EditWish" >
 					<i class="fas fa-plus-square fa-3x"></i>
@@ -276,13 +272,9 @@
 		</main>
 
 		<!--- NOTIFICATIONS --->
-		<div id="Notifications">
-			<!--- <span class="notification-message p-3 rounded alert-success" >Something went right</span>
-			<span class="notification-message p-3 rounded alert-danger" >Something went wrong</span>
-			<span class="notification-message p-3 rounded alert-warning" >Something has potential</span> --->
-		</div>
+		<div id="Notifications"></div>
 
-		<ol class="breadcrumb fixed-bottom rounded-0 pt-3 mb-0">
+		<ol id="Footer" class="breadcrumb fixed-bottom rounded-0 pt-3 mb-0">
 			<div class="breadcrumb-item">WISHLIST</div>
 			<div class="breadcrumb-item">CARLETTE</div>
 			<div class="breadcrumb-item active">EDIT</div>
