@@ -7,11 +7,16 @@ global
 const backendEntryPoint = "CFCs/AjaxProxy.cfc";
 const main = Object.create(null);
 
+main.onImageNotFound = function(event) {
+    event.srcElement.src = "Media/Images/ImageNotFound.jpeg";
+}
+
 import { AuthenticationManager } from "./Authentication.js";
 import * as Events from "./EventManager.js";
 import { ServiceLocator } from "./ServiceLocator.js";
 import { NotificationManager } from "./Notifications.js";
 import { MainMenu } from "./Controllers/MainMenu.js";
+import { Wishes } from "./Controllers/Wishes.js";
 
 main.controllers = Object.create(null);
 
@@ -28,10 +33,18 @@ controllerServices.provide("eventTypes", Events.EventTypes);
 
 // Controllers
 main.controllers.menuDialog = new MainMenu(authentication, backendEntryPoint, CFAjaxAuthKey, controllerServices);
+main.controllers.wishlist = new Wishes(backendEntryPoint, CFAjaxAuthKey, controllerServices);
 
 // Object.freeze(main);
 // Object.freeze(main.controllers);
 console.log("Everything's initialized and ready to rock and roll");
+
+// document.querySelector("#MenuButton").click();
+document.getElementById("EditWish").addEventListener("shown.bs.modal", (event)=> console.log(event));
+
+$('#EditWish').on('shown.bs.modal', function (e) {
+    console.log(e)
+})
 
 // TODO(thomas): debugging
 window.main = main;

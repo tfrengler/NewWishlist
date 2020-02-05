@@ -59,7 +59,7 @@ export class MainMenu {
 		this._elements.wishlistLoader.classList.remove("hidden");
 
 		const wishlist = new Wishlist(this._backendEntryPoint, this._ajaxAuthKey);
-		const loadWishlistResponse = await wishlist.load(event.srcElement.dataset["wishlistOwnerId"] || -1);
+        const loadWishlistResponse = await wishlist.load(event.srcElement.dataset["wishlistOwnerId"] || -1);
 
 		if (loadWishlistResponse.ERROR) {
 			this._elements.wishlistLoader.classList.add("hidden");

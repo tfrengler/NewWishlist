@@ -44,6 +44,14 @@ export class Wishlist {
         return newWishID;
     }
 
+    getWishes() {
+        return this._wishes;
+    }
+
+    getWish(id=-1) {
+        this._wishes.get(id);
+    }
+
     async deleteWish(id=-1, token="UNDEFINED_ARGUMENT") {
 		
 		const backendRequest = await JSUtils.fetchRequest(

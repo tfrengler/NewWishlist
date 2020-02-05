@@ -18,20 +18,12 @@
 
 		<link rel="stylesheet" href="CSS/main.css" />
 
-        <!--- todo(thomas): Debuggery --->
         <cfsilent>
             <cfset authKey = application.security.generateAuthKey(sessionid=session.sessionid) />
             <cfset session.ajaxAuthKey = authKey />
         </cfsilent>
 
-        <script>
-            <cfoutput>const CFAjaxAuthKey = "#authKey#";</cfoutput>
-
-			const onImageNotFound = function(imgElement) {
-				imgElement.src = "Media/Images/ImageNotFound.jpeg";
-			}
-		</script>
-
+        <script><cfoutput>const CFAjaxAuthKey = "#authKey#";</cfoutput></script>
 		<script type="module" defer src="JS/main.js" ></script>
 	</head>
 
@@ -92,7 +84,7 @@
 
 					<div class="modal-body">
 						<div class="d-flex justify-content-center mb-2" >
-							<img onerror="onImageNotFound(this)" id="Edit_Picture" class="border rounded" src="Media/Images/ImageNotFound.jpeg" referrerpolicy="no-referrer" validate="never" />
+							<img onerror="main.onImageNotFound" id="Edit_Picture" class="border rounded" src="Media/Images/ImageNotFound.jpeg" referrerpolicy="no-referrer" validate="never" />
 						</div>
 
 						<b>UPLOAD A FILE:</b>
@@ -164,115 +156,22 @@
 		</header>
 
 		<!--- MAIN CONTAINER --->
-        <main class="container-fluid">
-            <!--- <cfdump var=#session# /> --->
-			
-			<div class="row">
+        <main id="WishRowContainer" class="container-fluid">
+            <div class="d-flex justify-content-center" class="row">
+                <p class="pt-5">Welcome! No wishlist has been selected yet</p>
+            </div>
 
-				<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light mb-3">
-
-					<div class="wish-item wish-edit p-3" >
-						<button id="EditWish_X" class="btn btn-warning" data-toggle="modal" data-target="#EditWish" >
-							<i class="fas fa-edit fa-3x"></i>
-						</button>
-					</div>
-
-					<div class="wish-item wish-image border rounded mr-3 overflow-hidden">
-						<img onerror="onImageNotFound(this)" class="rounded" src="Media/Images/xxx.jpg" referrerpolicy="no-referrer" validate="never" />
-					</div>
-
-					<div class="wish-item wish-description border rounded overflow-hidden p-3 mr-3" >
-						The Other Kind of Life<br/>
-						by Shamus Young<br/>
-						ISBN-10: 1790478510<br/>
-						ISBN-13: 978-1790478514<br/>
-					</div>
-
-					<div class="wish-item wish-links border rounded p-3 text-primary" >
-						<div><i class="fas fa-link">
-							<a href="#">LINK</a>
-						</i></div>
-						<div><i class="fas fa-link">
-							<a href="#">LINK</a>
-						</i></div>
-						<div><i class="fas fa-link">
-							<a href="#">LINK</a>
-						</i></div>
-					</div>
-
-					<div class="wish-item wish-delete p-3" >
-						<button id="DeleteWish_X" class="btn btn-danger" >
-							<i class="fas fa-trash-alt fa-3x"></i>
-						</button>
-					</div>
-				</section>
-
-			</div>
-
-			<div class="row">
-				<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light mb-3">
-
-					<div class="wish-item wish-edit p-3" >
-						<button id="EditWish_X" class="btn btn-warning" data-toggle="modal" data-target="#EditWish" >
-							<i class="fas fa-edit fa-3x"></i>
-						</button>
-					</div>
-
-					<div class="wish-item wish-image border rounded mr-3 overflow-hidden">
-						<img onerror="onImageNotFound(this)" class="rounded" src="Media/Images/TheGang.jpg" referrerpolicy="no-referrer" validate="never" />
-					</div>
-
-					<div class="wish-item wish-description border rounded overflow-hidden p-3 mr-3" >
-						Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
-						The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.
-					</div>
-
-					<div class="wish-item wish-links border rounded p-3 text-primary" >
-						<div>
-							<a href="#">
-								<i class="fas fa-link">&nbsp;LINK</i>
-							</a>
-						</div>
-						<div>
-							<a href="#">
-								<i class="fas fa-link">&nbsp;LINK</i>
-							</a>
-						</div>
-						<div>
-							<a href="#">
-								<i class="fas fa-link">&nbsp;LINK</i>
-							</a>
-						</div>
-						<div>
-							<a href="#">
-								<i class="fas fa-link">&nbsp;LINK</i>
-							</a>
-						</div>
-						<div>
-							<a href="#">
-								<i class="fas fa-link">&nbsp;LINK</i>
-							</a>
-						</div>
-					</div>
-
-					<div class="wish-item wish-delete p-3" >
-						<button id="DeleteWish_X" class="btn btn-danger" >
-							<i class="fas fa-trash-alt fa-3x"></i>
-						</button>
-					</div>
-				</section>
-			</div>
-
-			<div class="row">
-				<button id="AddWish" class="btn btn-success" data-toggle="modal" data-target="#EditWish" >
+			<div class="row" id="AddWishRow">
+				<button id="AddWish" class="btn btn-success hidden" data-toggle="modal" data-target="#EditWish" >
 					<i class="fas fa-plus-square fa-3x"></i>
 				</button>
 			</div>
-
 		</main>
 
 		<!--- NOTIFICATIONS --->
-		<div id="Notifications"></div>
+		<div id="Notifications">
+            <span class="notification-message p-3 rounded hidden">TESTING!!!!</span>
+        </div>
 
 		<ol id="Footer" class="breadcrumb fixed-bottom rounded-0 pt-3 mb-0">
 			<div class="breadcrumb-item">WISHLIST</div>

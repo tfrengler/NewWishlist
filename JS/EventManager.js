@@ -103,7 +103,7 @@ class EventManager {
 		if (!this._isValidEvent(eventType || Symbol("ARGUMENT_UNDEFINED"))) return;
 		// TODO(thomas): Remove console dump
 		console.warn(`Event triggered: ${eventType.description}`);
-		if (parameters) console.log(parameters);
+		//if (parameters) console.log(parameters);
 		this._dispatch( new Event(eventType, parameters) );
 	}
 }

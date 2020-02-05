@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 "use strict";
 
 // import { JSUtils } from "../Utils.js";
@@ -13,7 +14,8 @@ export class Wishes {
 		this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)/");
 
 		this._elements = Object.freeze({
-			addNewWishButton: document.getElementById("AddWish")
+            addNewWishButton: document.getElementById("AddWish"),
+            wishlistContainer: document.getElementById("WishRowContainer")
 		});
 
 		let immutable = {
@@ -31,7 +33,7 @@ export class Wishes {
 		this._init();
 		
 		console.log("Wishes-controller initialized");
-		return Object.freeze(this);
+		return Object.seal(this);
 	}
 
 	_init() {
@@ -42,21 +44,36 @@ export class Wishes {
 		);
 	}
 	
-	_onWishlistLoaded() {
+	_onWishlistLoaded(data) {
+        if (data.constructor.name !== "Wishlist")
+            throw new Error("Expected event data to be an instance of Wishlist, but it is not: " + data.constructor.name)
 
-	}
+        this._wishlist = data;
+        this._wishlist.getWishes().forEach(wish=> this._createDOMWish(wish));
+    }
+    
+    _insertWishInDOM(wishNode) {
+        const secondLastRowIndex = document.querySelectorAll(`#${this._elements.wishlistContainer.id} > div.row`).length - 1;
+        this._elements.wishlistContainer.insertBefore(wishNode, this._elements.wishlistContainer.children[secondLastRowIndex]);
+    }
 	
 	_createDOMWish(wishInstance) {
+        if (wishInstance.constructor.name != "Wish")
+			throw new Error("Argument 'wishInstance' is not an instance of Wish!");
+
+        const wishRow = document.createElement("div");
+        wishRow.classList.add("row","wish-row-container");
 
 		const container = document.createElement("section");
-		container.classList.add("wish border border-dark rounded p-3 d-inline-flex flex-row bg-light mb-3");
+        container.classList.add("wish","border","border-dark","rounded","p-3","d-inline-flex","flex-row","bg-light","mb-3");
+        container.id = "WishID_" + wishInstance.getId();
 
 		const imageContainer = document.createElement("div");
-		imageContainer.classList.add("wish-item wish-image border rounded mr-3 overflow-hidden");
+		imageContainer.classList.add("wish-item","wish-image","border","rounded","mr-3","overflow-hidden");
 
 		const image = document.createElement("img");
 		image.classList.add("rounded");
-		image.onerror = "onImageNotFound(this)";
+		image.onerror = main.onImageNotFound;
 		image.setAttribute("referrerPolicy", "no-referrer");
 		image.setAttribute("validate", "never");
 		image.setAttribute("src", wishInstance.getPicture());
@@ -64,26 +81,25 @@ export class Wishes {
 		imageContainer.appendChild(image);
 
 		const description = document.createElement("div");
-		description.classList.add("wish-item wish-description border rounded overflow-hidden p-3 mr-3");
+		description.classList.add("wish-item","wish-description","border","rounded","overflow-hidden","p-3","mr-3");
 		description.innerText = wishInstance.getDescription();
 
 		const linksContainer = document.createElement("div");
-		linksContainer.classList.add("wish-item wish-links border rounded p-3 text-primary");
+		linksContainer.classList.add("wish-item","wish-links","border","rounded","p-3","text-primary");
 
 		wishInstance.getLinks().forEach((linkURL)=> {
 
 			const enclosingDiv = document.createElement("div");
-			enclosingDiv.classList.add("wish-item wish-links border rounded p-3 text-primary");
 
 			const linkIcon = document.createElement("i");
-			linkIcon.classList.add("fas fa-link");
+			linkIcon.classList.add("fas","fa-link");
 
 			const hyperlink = document.createElement("a");
 			hyperlink.setAttribute("href", linkURL);
 
 			let linkText;
 			if (linkURL.search(this._linkDomainRegex) > -1)
-				linkText = `LINK (${linkURL.match(this._linkDomainRegex)[1]})`;
+				linkText = `LINK (${linkURL.match(this._linkDomainRegex)[2]})`;
 			else
 				linkText = "LINK";
 			
@@ -94,24 +110,34 @@ export class Wishes {
 
 			linksContainer.appendChild(enclosingDiv);
 		});
-		
-		
+        
+        // Putting it all together
+        container.appendChild(this._createDOMWishEditButton(wishInstance.getId()));
+        
+        container.appendChild(imageContainer);
+        container.appendChild(description);
+        container.appendChild(linksContainer);
+
+        container.appendChild(this._createDOMWishDeleteButton(wishInstance.getId()));
+        
+		wishRow.appendChild(container);
+        this._insertWishInDOM(wishRow); 
 	}
 
 	_createDOMWishEditButton(id=-1) {
 
 		const container = document.createElement("div");
-		container.classList.add("wish-item wish-edit p-3");
+		container.classList.add("wish-item","wish-edit","p-3");
 
 		const button = document.createElement("button");
-		button.classList.add("btn btn-warning"); 
+		button.classList.add("btn","btn-warning"); 
 
 		button.id = "EditWish_" + id;
 		button.dataset.toggle = "modal";
-		button.dataset.target = "#EditWish";
-
+        button.dataset.target = "#EditWish";
+        
 		const icon = document.createElement("i");
-		icon.classList.add("fas fa-edit fa-3x");
+		icon.classList.add("fas","fa-edit","fa-3x");
 
 		container.appendChild(button);
 		button.appendChild(icon);
@@ -122,21 +148,33 @@ export class Wishes {
 	_createDOMWishDeleteButton(id=-1) {
 		
 		const container = document.createElement("div");
-		container.classList.add("wish-item wish-delete p-3");
+		container.classList.add("wish-item","wish-delete","p-3");
 
 		const button = document.createElement("button");
-		button.classList.add("btn btn-danger"); 
+		button.classList.add("btn","btn-danger"); 
 
 		button.id = "DeleteWish_" + id;
 
 		const icon = document.createElement("i");
-		icon.classList.add("fas fa-trash-alt fa-3");
+		icon.classList.add("fas","fa-trash-alt","fa-3x");
 
 		container.appendChild(button);
 		button.appendChild(icon);
 
 		return container;
-	}
+    }
+    
+    deleteWish(id=-1) {
+
+    }
+
+    addWish() {
+        
+    }
+
+    clear() {
+
+    }
 }
 
 /*
