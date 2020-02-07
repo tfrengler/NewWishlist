@@ -1,7 +1,9 @@
 /* eslint-disable no-useless-escape */
+/* global $ */
 "use strict";
 
-// import { JSUtils } from "../Utils.js";
+import { JSUtils } from "../Utils.js";
+import { Wish } from "../Wish.js";
 
 export class Wishes {
 
@@ -10,13 +12,22 @@ export class Wishes {
 		this._backendEntryPoint = backendEntryPoint;
 		this._ajaxAuthKey = ajaxAuthKey;
 		this._services = services;
-		this._wishlist = null;
+        this._wishlist = null; // Mutable
+        this._token = null; // Mutable
 		this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)/");
 
 		this._elements = Object.freeze({
             addNewWishButton: document.getElementById("AddWish"),
-            wishlistContainer: document.getElementById("WishRowContainer")
-		});
+            wishlistContainer: document.getElementById("WishRowContainer"),
+            editWishDialog: document.getElementById("EditWish"),
+            editPictureImgElement: document.getElementById("Edit_Picture"),
+            editPictureURLTextElement: document.getElementById("Edit_Picture_URL"),
+            editDescriptionTexarea: document.getElementById("Edit_Description"),
+            editLinksTextElements: document.querySelectorAll("#Edit_Links_Container input"),
+            saveWishChangesButton: document.getElementById("SaveWishChanges"),
+            saveWishesLoader: document.querySelector("#SaveWishChanges i"),
+            closeEditWishDialogButton: document.getElementById("CloseEditWishDialog")
+        });
 
 		let immutable = {
 			configurable: false,
@@ -27,9 +38,10 @@ export class Wishes {
 		Object.defineProperties(this, {
 			"_backendEntryPoint": immutable,
 			"_ajaxAuthKey": immutable,
-			"_services": immutable
-		});
-		
+            "_services": immutable,
+            "_linkDomainRegex": immutable
+        });
+
 		this._init();
 		
 		console.log("Wishes-controller initialized");
@@ -41,7 +53,23 @@ export class Wishes {
 			this._services.get("eventTypes").WISHLIST_LOADED,
 			this._onWishlistLoaded,
 			this
-		);
+        );
+
+        this._services.get("events").subscribe(
+			this._services.get("eventTypes").LOGIN_SUCCESS,
+			(data)=> this._token = data.token
+        );
+
+        this._services.get("events").subscribe(
+			this._services.get("eventTypes").LOGOUT_SUCCESS,
+			()=> this._token = null
+        );
+        
+        $(this._elements.editWishDialog).on('show.bs.modal', (event)=> this.onOpenEditDialog(event));
+        $(this._elements.editWishDialog).on('hide.bs.modal', (event)=> this.onCloseEditDialog(event));
+        this._elements.saveWishChangesButton.addEventListener("click", (event)=> this.onSaveWish(event));
+
+        this._elements.editPictureImgElement.addEventListener("error", JSUtils.onImageNotFound)
 	}
 	
 	_onWishlistLoaded(data) {
@@ -73,7 +101,7 @@ export class Wishes {
 
 		const image = document.createElement("img");
 		image.classList.add("rounded");
-		image.onerror = main.onImageNotFound;
+		image.onerror = JSUtils.onImageNotFound;
 		image.setAttribute("referrerPolicy", "no-referrer");
 		image.setAttribute("validate", "never");
 		image.setAttribute("src", wishInstance.getPicture());
@@ -97,6 +125,7 @@ export class Wishes {
 			const hyperlink = document.createElement("a");
 			hyperlink.setAttribute("href", linkURL);
 
+            // TODO(thomas): Improve this to make it more failsafe
 			let linkText;
 			if (linkURL.search(this._linkDomainRegex) > -1)
 				linkText = `LINK (${linkURL.match(this._linkDomainRegex)[2]})`;
@@ -163,6 +192,34 @@ export class Wishes {
 
 		return container;
     }
+
+    onOpenEditDialog(event) {
+
+        let idSearch;
+        if ((idSearch = event.relatedTarget.id.split("_")).length !== 2)
+            throw new Error("Unable to find WishID in calling element's ID. Split operation does not contain two keys as expected");
+
+        if (isNaN(parseInt(idSearch[1])))
+            throw new Error("Unable to find WishID in calling element's ID. 2nd key of split operation cannot be parsed as an integer");
+
+        const callingWishID = parseInt(idSearch[1]);
+        const callingWish = this._wishlist.getWish(callingWishID);
+        const callingWishLinks = callingWish.getLinks();
+
+        this._elements.editWishDialog.dataset.activewish = callingWishID;
+        this._elements.editPictureImgElement.src = callingWish.getPicture();
+        this._elements.editPictureURLTextElement.value = callingWish.getPicture();
+        this._elements.editDescriptionTexarea.value = callingWish.getDescription();
+        this._elements.editLinksTextElements.forEach((textElement, index)=> textElement.value = callingWishLinks[index] || "");
+    }
+
+    onCloseEditDialog() {
+        this._elements.editWishDialog.dataset.activewish = 0;
+        this._elements.editPictureImgElement.src = "";
+        this._elements.editPictureURLTextElement.value = "";
+        this._elements.editDescriptionTexarea.value = "";
+        this._elements.editLinksTextElements.forEach((textElement)=> textElement.value = "");
+    }
     
     deleteWish(id=-1) {
 
@@ -174,6 +231,44 @@ export class Wishes {
 
     clear() {
 
+    }
+
+    async onSaveWish() {
+        this._elements.closeEditWishDialogButton.disabled = true;
+        this._elements.saveWishChangesButton.disabled = true;
+        this._elements.saveWishesLoader.classList.remove("hidden");
+
+        const callingWishID = parseInt(this._elements.editWishDialog.dataset.activewish);
+
+        let links = new Array(5);
+        this._elements.editLinksTextElements.forEach((textElement, index)=> links[index] = textElement.value.trim());
+
+        const modifiedWish = new Wish(
+            callingWishID,
+            this._elements.editPictureURLTextElement.value.trim(),
+            this._elements.editDescriptionTexarea.value.trim(),
+            links
+        );
+
+        if (this._wishlist.getWish(callingWishID).equalTo(modifiedWish)) {
+            this._elements.closeEditWishDialogButton.disabled = false;
+            this._elements.saveWishChangesButton.disabled = false;
+            this._elements.saveWishesLoader.classList.add("hidden");
+
+            this._services.get("notifications").notifyWarning("Not saved: no changes made");
+            return;
+        }
+
+        const saveWishResponse = await this._wishlist.saveWish(modifiedWish, this._token);
+        
+        if (saveWishResponse.ERROR === true)
+            this._services.get("notifications").notifyError("Failed to save wish changes\nContact the admin :/", 3000);
+        else
+            this._services.get("notifications").notifySuccess("Changes saved");
+
+        this._elements.closeEditWishDialogButton.disabled = false;
+        this._elements.saveWishChangesButton.disabled = false;
+        this._elements.saveWishesLoader.classList.add("hidden");
     }
 }
 

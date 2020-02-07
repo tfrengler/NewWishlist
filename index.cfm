@@ -74,7 +74,7 @@
 		</div>
 
 		<!--- EDIT-WISH MODAL --->
-		<div class="modal fade" id="EditWish" data-backdrop="static" tabindex="-1" >
+		<div class="modal fade" id="EditWish" data-backdrop="static" tabindex="-1" data-activewish="0" >
 			<div class="modal-dialog" >
 				<div class="modal-content">
 
@@ -84,7 +84,7 @@
 
 					<div class="modal-body">
 						<div class="d-flex justify-content-center mb-2" >
-							<img onerror="main.onImageNotFound" id="Edit_Picture" class="border rounded" src="Media/Images/ImageNotFound.jpeg" referrerpolicy="no-referrer" validate="never" />
+							<img id="Edit_Picture" class="border rounded" referrerpolicy="no-referrer" validate="never" />
 						</div>
 
 						<b>UPLOAD A FILE:</b>
@@ -119,7 +119,7 @@
 						<h5 class="modal-title">LINKS</h5>
 					</div>
 
-					<div class="modal-body">
+					<div id="Edit_Links_Container" class="modal-body">
 						<input type="text" class="form-control mb-1" id="Edit_Link1" />
 						<input type="text" class="form-control mb-1" id="Edit_Link2" />
 						<input type="text" class="form-control mb-1" id="Edit_Link3" />
@@ -130,9 +130,9 @@
 					<div class="modal-footer">
 						<button type="button" id="SaveWishChanges" class="btn btn-primary" >
 							<span>SAVE</span>
-							<i class="fas fa-cog fa-spin text-warning"></i>
+							<i class="fas fa-cog fa-spin text-warning hidden"></i>
 						</button>
-						<button type="button" class="btn btn-info" data-dismiss="modal">CLOSE</button>
+						<button type="button" id="CloseEditWishDialog" class="btn btn-info" data-dismiss="modal">CLOSE</button>
 					</div>
 				</div>
 			</div>
@@ -170,7 +170,7 @@
 
 		<!--- NOTIFICATIONS --->
 		<div id="Notifications">
-            <span class="notification-message p-3 rounded hidden">TESTING!!!!</span>
+            <!--- <span class="notification-message p-3 rounded hidden">TESTING!!!!</span> --->
         </div>
 
 		<ol id="Footer" class="breadcrumb fixed-bottom rounded-0 pt-3 mb-0">

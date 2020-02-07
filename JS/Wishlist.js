@@ -38,7 +38,7 @@ export class Wishlist {
     }
 
     addNewWish() {
-        const newWishID = Math.max(...this._wishes.keys()) + 1;
+        const newWishID = this.getNewWishID();
         this._wishes.set(newWishID, new Wish(newWishID));
 
         return newWishID;
@@ -48,8 +48,12 @@ export class Wishlist {
         return this._wishes;
     }
 
+    getNewWishID() {
+        return Math.max(...this._wishes.keys()) + 1;
+    }
+
     getWish(id=-1) {
-        this._wishes.get(id);
+        return this._wishes.get(id);
     }
 
     async deleteWish(id=-1, token="UNDEFINED_ARGUMENT") {
@@ -74,7 +78,7 @@ export class Wishlist {
 		return backendRequest;
     }
 
-    async editWish(wish={}, token="UNDEFINED_ARGUMENT") {
+    async saveWish(wish={}, token="UNDEFINED_ARGUMENT") {
         if (!(wish instanceof Wish))
             return Object.freeze({ERROR: true, DATA: `Argument 'wish' is not an instance of Wish (${wish.constructor.name})`});
 

@@ -7,10 +7,6 @@ global
 const backendEntryPoint = "CFCs/AjaxProxy.cfc";
 const main = Object.create(null);
 
-main.onImageNotFound = function(event) {
-    event.srcElement.src = "Media/Images/ImageNotFound.jpeg";
-}
-
 import { AuthenticationManager } from "./Authentication.js";
 import * as Events from "./EventManager.js";
 import { ServiceLocator } from "./ServiceLocator.js";
@@ -40,11 +36,6 @@ main.controllers.wishlist = new Wishes(backendEntryPoint, CFAjaxAuthKey, control
 console.log("Everything's initialized and ready to rock and roll");
 
 // document.querySelector("#MenuButton").click();
-document.getElementById("EditWish").addEventListener("shown.bs.modal", (event)=> console.log(event));
-
-$('#EditWish').on('shown.bs.modal', function (e) {
-    console.log(e)
-})
 
 // TODO(thomas): debugging
 window.main = main;

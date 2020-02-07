@@ -36,7 +36,20 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 		}
 
 		return returnData;
-	}
+    }
+    
+    private string function getExistingWish(required numeric id, required string userID) {
+        var wishlistDir = "#variables.workingDir#/#arguments.userID#";
+
+        for(var wishFile in directoryList(path=wishlistDir, recurse=false, listInfo="name", filter="*.json", type="file")) {
+
+            wishContents = fileRead("#wishlistDir#/#wishFile#");
+            if (arrayLen(reMatch('"id":\s*#id#,', wishContents)) GT 0)
+                return wishFile;
+        }
+
+        return "";
+    }
 
 	public struct function saveWish(required numeric id, required struct data, required string token, required struct sessionHandle) {
 		if (!variables.authentication.isValidSession(arguments.token, arguments.sessionHandle))
@@ -49,28 +62,36 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 		)
 		return {STATUS_CODE: 2};
 
-		var wishlistDir = "#variables.workingDir#/#user.getId()#";
-		var wishlistFilePath = "#wishlistDir#/#arguments.id#";
+        var user = variables.authentication.getUserByToken(token=arguments.token);
+        var wishlistDir = "#variables.workingDir#/#user.getId()#";
+        var wishlistFilePath = "";
+        var existingWishFile = variables.getExistingWish(arguments.id, user.getId());
 
-		try {
-			var existingWish = deserializeJSON(fileRead(wishlistFilePath));
-		}
-		catch(error) {
-			// TODO(thomas): Probably need to dump this somewhere for debugging
-			return {STATUS_CODE: 3};
-		}
+		if (len(existingWishFile) GT 0) {
+            wishlistFilePath = "#wishlistDir#/#existingWishFile#";
+            try {
+                fileDelete(wishlistFilePath);
+            }
+            catch(error) {
+                // TODO(thomas): Dump somewhere?
+                return {STATUS_CODE: 3}
+            }
+        }
+        else
+            wishlistFilePath = "#wishlistDir#/#createUUID()#.json";
 
-		existingWish.description = (len(arguments.data.description) GT 0 ? arguments.data.description : existingWish.description);
-		existingWish.picture = (len(arguments.data.picture) GT 0 ? arguments.data.picture : existingWish.picture);
-		existingWish.links = (len(arguments.data.links) GT 0 ? arguments.data.links : existingWish.links);
-
-		try {
-			fileWrite(wishlistFilePath, serializeJSON(existingWish));
-		}
-		catch(error) {
-			// TODO(thomas): Probably need to dump this somewhere for debugging
-			return {STATUS_CODE: 4};
-		}
+        try {
+            fileWrite(wishlistFilePath, serializeJSON({
+                id: arguments.id,
+                description: arguments.data.description,
+                picture: arguments.data.picture,
+                links: arguments.data.links
+            }));
+        }
+        catch(error) {
+            // TODO(thomas): Dump somewhere?
+            return {STATUS_CODE: 4}
+        }
 
 		return {STATUS_CODE: 0};
 	}

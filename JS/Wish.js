@@ -7,6 +7,7 @@ export class Wish {
 			throw new Error("Error instantiating new wish. ID must be greater than zero: " + parseInt(id) || -666);
 
 		this._id = id;
+		this._links = new Array(5);
 
 		if (typeof picture === typeof "")
 			this._picture = picture;
@@ -19,7 +20,7 @@ export class Wish {
 			this._description = "";
 
 		if (links instanceof Array)
-			this._links = links;
+			this.changeLinks(links);
 		else
 			this._links = new Array(5);
 
@@ -35,7 +36,8 @@ export class Wish {
 	}
 
 	changeLinks(data=[]) {
-		this._links = data;
+		for(let index = 0; index <= 4; index++)
+			this._links[index] = data[index] || "";
 	}
 
 	getData() {
@@ -61,5 +63,21 @@ export class Wish {
 
 	getId() {
 		return this._id;
+	}
+	
+	equalTo(wishInstance={}) {
+		if (!(wishInstance instanceof Wish))
+			throw new Error("Argument 'wishInstance' is expected to be an instance of Wish, but it is not: " + wishInstance.constructor.name);
+
+		if (this._description !== wishInstance.getDescription()) return false;
+		if (this._picture !== wishInstance.getPicture()) return false;
+
+		let areLinksTheSame = true;
+
+		wishInstance.getLinks().forEach((link, index)=> {
+			if (this._links[index] !== link) areLinksTheSame = false;
+		})
+
+		return areLinksTheSame;
 	}
 }

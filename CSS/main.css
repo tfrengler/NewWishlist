@@ -24,7 +24,8 @@ img {
 }
 
 #EditWish img {
-	max-width: 15rem;
+    max-width: 15rem;
+    max-height: 15rem;
 }
 
 .wish-description, .wish-links, .wish-image {

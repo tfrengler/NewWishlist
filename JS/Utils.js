@@ -2,6 +2,11 @@
 
 export const JSUtils = Object.create(null);
 
+JSUtils.onImageNotFound = function(event) {
+    console.warn("Image not found: " + event.srcElement.src);
+    event.srcElement.src = "Media/Images/ImageNotFound.jpeg";
+};
+
 JSUtils.deepFreeze = function(object) {
 	var propNames = Object.getOwnPropertyNames(object);
 
