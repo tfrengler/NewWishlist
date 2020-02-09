@@ -10,6 +10,7 @@ export class AuthenticationManager {
 		this._ajaxAuthKey = ajaxAuthKey;
 		this._token = null; // Mutable
 		this._displayName = null; // Mutable
+		this._userID = 0; // Mutable
 		this._controller = "authentication";
         this._method = "call";
         
@@ -48,6 +49,7 @@ export class AuthenticationManager {
 		if (backendRequest.ERROR === false) {
 			this._token = backendRequest.DATA.TOKEN;
 			this._displayName = backendRequest.DATA.DISPLAY_NAME;
+			this._userID = backendRequest.DATA.USER_ID;
 
 			return {ERROR: false};
 		}
@@ -69,8 +71,9 @@ export class AuthenticationManager {
 		);
 
 		if (backendRequest.ERROR === false) {
-			this._token = "";
-			this._displayName = "";
+			this._token = null;
+			this._displayName = null;
+			this._userID = 0;
 
 			return {ERROR: false};
 		}
@@ -84,5 +87,9 @@ export class AuthenticationManager {
 
 	getUserDisplayName() {
 		return this._displayName;
+	}
+
+	getUserID() {
+		return this._userID;
 	}
 }

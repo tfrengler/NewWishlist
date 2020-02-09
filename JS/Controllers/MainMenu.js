@@ -4,13 +4,10 @@ import { Wishlist } from "../Wishlist.js";
 
 export class MainMenu {
 
-	constructor(authenticationManager={}, backendEntryPoint="UNDEFINED_ARGUMENT", ajaxAuthKey="UNDEFINED_ARGUMENT", services=null) {
-		if (authenticationManager.constructor.name != "AuthenticationManager")
-			throw new Error("Argument '' is not an instance of AuthenticationManager!");
+	constructor(backendEntryPoint="UNDEFINED_ARGUMENT", ajaxAuthKey="UNDEFINED_ARGUMENT", services=null) {
 
 		this._backendEntryPoint = backendEntryPoint;
 		this._ajaxAuthKey = ajaxAuthKey;
-		this._authentication = authenticationManager;
 		this._services = services;
 
 		this._elements = Object.freeze({
@@ -73,7 +70,10 @@ export class MainMenu {
 		this._elements.closeMenuButton.click();
 
 		this._services.get("notifications").notifySuccess("Wishload loaded");
-		this._services.get("events").trigger(this._services.get("eventTypes").WISHLIST_LOADED, wishlist);
+		this._services.get("events").trigger(this._services.get("eventTypes").WISHLIST_LOADED, {
+			wishlist: wishlist,
+			wishlistOwner: event.srcElement.dataset["wishlistOwnerName"]
+		});
 	}
 
 	async logIn(event) {
@@ -81,7 +81,7 @@ export class MainMenu {
 		event.srcElement.disabled = true;
 		this._elements.loginButtonLoader.classList.remove("hidden");
 
-		const loginResponse = await this._authentication.logIn(
+		const loginResponse = await this._services.get("authentication").logIn(
 			this._elements.usernameInput.value.trim(),
 			this._elements.passwordInput.value.trim()
 		);
@@ -95,7 +95,7 @@ export class MainMenu {
 			return;
 		}
 
-		event.srcElement.innerText = "LOGGED IN: " + this._authentication.getUserDisplayName();
+		event.srcElement.innerText = "LOGGED IN: " + this._services.get("authentication").getUserDisplayName();
 
 		this._elements.usernameInput.value = "";
 		this._elements.passwordInput.value = "";
@@ -107,20 +107,14 @@ export class MainMenu {
 		this._elements.loginButtonLoader.classList.add("hidden");
 		this._services.get("notifications").notifySuccess("You have been logged in");
 
-		this._services.get("events").trigger(
-			this._services.get("eventTypes").LOGIN_SUCCESS, 
-			{
-				token: this._authentication.getToken(),
-				userDisplayName: this._authentication.getUserDisplayName()
-			}
-		)
+		this._services.get("events").trigger(this._services.get("eventTypes").LOGIN_SUCCESS);
 	}
 
 	async logOut(event) {
 
 		event.srcElement.disabled = true;
 		this._elements.logoutButtonLoader.classList.remove("hidden");
-		const logoutResponse = await this._authentication.logOut(this._authentication.getToken());
+		const logoutResponse = await this._services.get("authentication").logOut(this._services.get("authentication").getToken());
 
 		if (logoutResponse.ERROR === true) {
 			event.srcElement.disabled = false;

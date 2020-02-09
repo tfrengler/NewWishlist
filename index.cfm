@@ -39,13 +39,14 @@
 					</div>
 
 					<div class="modal-body" id="WishlistContainer" >
-						<!--- TODO(thomas): Get users from authentication in application, enumerate and generate a button per user --->
-						<p>
-							<button data-wishlist-owner-id="1" data-wishlist-owner-name="CARLETTE" class="btn btn-info btn-block">CARLETTE</button>
-						</p>
-						<p>
-							<button data-wishlist-owner-id="2" data-wishlist-owner-name="THOMAS" class="btn btn-info btn-block">THOMAS</button>
-						</p>
+						<cfset allUsers = application.authentication.getAllUsers() />
+						<cfloop collection=#allUsers# item="userName" >
+							<cfset currentUser = allUsers[userName] />
+
+							<cfoutput>
+							<p><button data-wishlist-owner-id="#currentUser.getId()#" data-wishlist-owner-name="#currentUser.getDisplayName()#" class="btn btn-info btn-block">#currentUser.getDisplayName()#</button></p>
+							</cfoutput>
+						</cfloop>
 					</div>
 
 					<div class="modal-header">
@@ -146,9 +147,10 @@
 					<button id="MenuButton" class="btn btn-info" data-toggle="modal" data-target="#MainMenu" >
 						<i class="fas fa-bars"></i>
 					</button>
-					<button id="EditMode" class="btn btn-warning" >
-						<i class="fas fa-pen-square"></i>&nbsp;EDIT-MODE
-					</button>
+					<span class="btn btn-warning" >
+						<i class="fas fa-user"></i>&nbsp;
+						<span id="ActiveWishlistOwnerName"></span>
+					</span>
 				</section>
 				<h2 class="info-box" id="HeaderTitle">WISHLISTS</h2>
 
@@ -157,12 +159,13 @@
 
 		<!--- MAIN CONTAINER --->
         <main id="WishRowContainer" class="container-fluid">
-            <div class="d-flex justify-content-center" class="row">
-                <p class="pt-5">Welcome! No wishlist has been selected yet</p>
+            <div id="WelcomeMessageRow" class="d-flex lead flex-column align-items-center row">
+				<div>Welcome! No wishlist has been selected yet</div>
+				<div>Open the <b>main menu</b> in the top left to find all available wishlists.</div>
             </div>
 
 			<div class="row" id="AddWishRow">
-				<button id="AddWish" class="btn btn-success hidden" data-toggle="modal" data-target="#EditWish" >
+				<button id="AddWish" data-wishid="0" class="btn btn-success hidden" data-toggle="modal" data-target="#EditWish" >
 					<i class="fas fa-plus-square fa-3x"></i>
 				</button>
 			</div>
@@ -172,12 +175,6 @@
 		<div id="Notifications">
             <!--- <span class="notification-message p-3 rounded hidden">TESTING!!!!</span> --->
         </div>
-
-		<ol id="Footer" class="breadcrumb fixed-bottom rounded-0 pt-3 mb-0">
-			<div class="breadcrumb-item">WISHLIST</div>
-			<div class="breadcrumb-item">CARLETTE</div>
-			<div class="breadcrumb-item active">EDIT</div>
-		</ol>
 	</body>
 
 </html>

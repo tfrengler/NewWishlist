@@ -6,30 +6,50 @@ import { JSUtils } from "./Utils.js";
 export class Wishlist {
 
     constructor(backendEntryPoint="UNDEFINED_ARGUMENT", ajaxAuthKey="UNDEFINED_ARGUMENT") {
-        
+		
+		this._wishlistID = 0; // Mutable
         this._wishes = new Map();
         this._backendEntryPoint = backendEntryPoint;
         this._ajaxAuthKey = ajaxAuthKey;
-        this._backendController = "wishlists";
+		this._backendController = "wishlists";
+		
+		let immutable = {
+			configurable: false,
+			enumerable: false,
+			writable: false
+		};
 
-        return Object.freeze(this);
+		Object.defineProperties(this, {
+			"_wishes": immutable,
+			"_backendEntryPoint": immutable,
+            "_ajaxAuthKey": immutable,
+            "_backendController": immutable
+        });
+
+        return Object.seal(this);
     }
 
     async load(userID=-1) {
+		userID = parseInt(userID);
 
 		const backendRequest = await JSUtils.fetchRequest(
 			this._backendEntryPoint,
 			this._ajaxAuthKey,
 			this._backendController,
 			"getWishes",
-			{userID: parseInt(userID)}
+			{userID: userID}
 		);
 
 		if (backendRequest.ERROR === false) {
-			for (let wishID in backendRequest.DATA) {
+			this._wishlistID = userID;
+
+			let sortedWishIDs = Object.keys(backendRequest.DATA);
+			sortedWishIDs.sort((a, b) => a - b);
+
+			sortedWishIDs.forEach(wishID=> {
 				let currentWish = backendRequest.DATA[wishID];
 				this._wishes.set(parseInt(wishID), new Wish(parseInt(wishID), currentWish.picture, currentWish.description, currentWish.links));
-			}
+			});
 
 			return {ERROR: false};
 		}
@@ -54,7 +74,11 @@ export class Wishlist {
 
     getWish(id=-1) {
         return this._wishes.get(id);
-    }
+	}
+	
+	getWishlistID() {
+		return this._wishlistID;
+	}
 
     async deleteWish(id=-1, token="UNDEFINED_ARGUMENT") {
 		

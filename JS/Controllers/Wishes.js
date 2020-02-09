@@ -7,13 +7,10 @@ import { Wish } from "../Wish.js";
 
 export class Wishes {
 
-	constructor(backendEntryPoint="UNDEFINED_ARGUMENT", ajaxAuthKey="UNDEFINED_ARGUMENT", services=null) {
+	constructor(services=null) {
 
-		this._backendEntryPoint = backendEntryPoint;
-		this._ajaxAuthKey = ajaxAuthKey;
 		this._services = services;
         this._wishlist = null; // Mutable
-        this._token = null; // Mutable
 		this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)/");
 
 		this._elements = Object.freeze({
@@ -26,7 +23,9 @@ export class Wishes {
             editLinksTextElements: document.querySelectorAll("#Edit_Links_Container input"),
             saveWishChangesButton: document.getElementById("SaveWishChanges"),
             saveWishesLoader: document.querySelector("#SaveWishChanges i"),
-            closeEditWishDialogButton: document.getElementById("CloseEditWishDialog")
+			closeEditWishDialogButton: document.getElementById("CloseEditWishDialog"),
+			welcomeMessageContainer: document.getElementById("WelcomeMessageRow"),
+			activeWishlistOwnerNameElement: document.getElementById("ActiveWishlistOwnerName")
         });
 
 		let immutable = {
@@ -36,8 +35,6 @@ export class Wishes {
 		};
 
 		Object.defineProperties(this, {
-			"_backendEntryPoint": immutable,
-			"_ajaxAuthKey": immutable,
             "_services": immutable,
             "_linkDomainRegex": immutable
         });
@@ -57,12 +54,14 @@ export class Wishes {
 
         this._services.get("events").subscribe(
 			this._services.get("eventTypes").LOGIN_SUCCESS,
-			(data)=> this._token = data.token
+			this._onUserLoginOrLogout,
+			this
         );
 
         this._services.get("events").subscribe(
 			this._services.get("eventTypes").LOGOUT_SUCCESS,
-			()=> this._token = null
+			this._onUserLoginOrLogout,
+			this
         );
         
         $(this._elements.editWishDialog).on('show.bs.modal', (event)=> this.onOpenEditDialog(event));
@@ -71,14 +70,42 @@ export class Wishes {
 
         this._elements.editPictureImgElement.addEventListener("error", JSUtils.onImageNotFound)
 	}
+
+	_onUserLoginOrLogout() {
+		if (this._eligableForEditMode()) {
+			document.querySelectorAll(".wish-edit").forEach(divElement=> divElement.classList.remove("hidden"));
+			document.querySelectorAll(".wish-delete").forEach(divElement=> divElement.classList.remove("hidden"));
+			this._elements.addNewWishButton.classList.remove("hidden");
+
+			return;
+		}
+
+		document.querySelectorAll(".wish-edit").forEach(divElement=> divElement.classList.add("hidden"));
+		document.querySelectorAll(".wish-delete").forEach(divElement=> divElement.classList.add("hidden"));
+		this._elements.addNewWishButton.classList.add("hidden");
+	}
 	
 	_onWishlistLoaded(data) {
-        if (data.constructor.name !== "Wishlist")
-            throw new Error("Expected event data to be an instance of Wishlist, but it is not: " + data.constructor.name)
+        if (data.wishlist.constructor.name !== "Wishlist")
+            throw new Error("Expected event data to be an instance of Wishlist, but it is not: " + data.wishlist.constructor.name)
 
-        this._wishlist = data;
-        this._wishlist.getWishes().forEach(wish=> this._createDOMWish(wish));
-    }
+		this._elements.welcomeMessageContainer.remove();
+		this._elements.activeWishlistOwnerNameElement.innerText = data.wishlistOwner;
+		document.querySelectorAll(".wish-row").forEach(wishRow=> wishRow.remove());
+
+        this._wishlist = data.wishlist;
+		this._wishlist.getWishes().forEach(wish=> this._createDOMWish(wish));
+		
+		if (this._eligableForEditMode()) 
+			this._elements.addNewWishButton.classList.remove("hidden");
+		else
+			this._elements.addNewWishButton.classList.add("hidden");
+	}
+	
+	_eligableForEditMode() {
+		if (!this._wishlist) return false;
+		return this._services.get("authentication").getUserID() === this._wishlist.getWishlistID();
+	}
     
     _insertWishInDOM(wishNode) {
         const secondLastRowIndex = document.querySelectorAll(`#${this._elements.wishlistContainer.id} > div.row`).length - 1;
@@ -90,11 +117,11 @@ export class Wishes {
 			throw new Error("Argument 'wishInstance' is not an instance of Wish!");
 
         const wishRow = document.createElement("div");
-        wishRow.classList.add("row","wish-row-container");
+        wishRow.classList.add("row","wish-row");
 
 		const container = document.createElement("section");
         container.classList.add("wish","border","border-dark","rounded","p-3","d-inline-flex","flex-row","bg-light","mb-3");
-        container.id = "WishID_" + wishInstance.getId();
+        container.dataset.wishid = wishInstance.getId();
 
 		const imageContainer = document.createElement("div");
 		imageContainer.classList.add("wish-item","wish-image","border","rounded","mr-3","overflow-hidden");
@@ -116,7 +143,7 @@ export class Wishes {
 		linksContainer.classList.add("wish-item","wish-links","border","rounded","p-3","text-primary");
 
 		wishInstance.getLinks().forEach((linkURL)=> {
-
+			if (!linkURL.length) return;
 			const enclosingDiv = document.createElement("div");
 
 			const linkIcon = document.createElement("i");
@@ -157,9 +184,10 @@ export class Wishes {
 
 		const container = document.createElement("div");
 		container.classList.add("wish-item","wish-edit","p-3");
+		if (!this._eligableForEditMode()) container.classList.add("hidden");
 
 		const button = document.createElement("button");
-		button.classList.add("btn","btn-warning"); 
+		button.classList.add("btn","btn-warning");
 
 		button.id = "EditWish_" + id;
 		button.dataset.toggle = "modal";
@@ -178,6 +206,7 @@ export class Wishes {
 		
 		const container = document.createElement("div");
 		container.classList.add("wish-item","wish-delete","p-3");
+		if (!this._eligableForEditMode()) container.classList.add("hidden");
 
 		const button = document.createElement("button");
 		button.classList.add("btn","btn-danger"); 
@@ -195,18 +224,17 @@ export class Wishes {
 
     onOpenEditDialog(event) {
 
-        let idSearch;
-        if ((idSearch = event.relatedTarget.id.split("_")).length !== 2)
-            throw new Error("Unable to find WishID in calling element's ID. Split operation does not contain two keys as expected");
+		const callingWishID = parseInt(event.relatedTarget.dataset.wishid);
+        this._elements.editWishDialog.dataset.activewish = callingWishID;
+		
+		if (callingWishID === 0) {
+			this._elements.editPictureImgElement.src = "";
+			return; // New wish, leave dialog blank
+		}
 
-        if (isNaN(parseInt(idSearch[1])))
-            throw new Error("Unable to find WishID in calling element's ID. 2nd key of split operation cannot be parsed as an integer");
-
-        const callingWishID = parseInt(idSearch[1]);
         const callingWish = this._wishlist.getWish(callingWishID);
         const callingWishLinks = callingWish.getLinks();
 
-        this._elements.editWishDialog.dataset.activewish = callingWishID;
         this._elements.editPictureImgElement.src = callingWish.getPicture();
         this._elements.editPictureURLTextElement.value = callingWish.getPicture();
         this._elements.editDescriptionTexarea.value = callingWish.getDescription();
@@ -227,10 +255,6 @@ export class Wishes {
 
     addWish() {
         
-    }
-
-    clear() {
-
     }
 
     async onSaveWish() {

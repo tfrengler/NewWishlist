@@ -26,7 +26,8 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 		if (variables.isLoggedIn(arguments.username, arguments.sessionHandle))
 			return {STATUS_CODE: 0, DATA: {
                 TOKEN: user.getToken(),
-                DISPLAY_NAME: user.getDisplayName()
+                DISPLAY_NAME: user.getDisplayName(),
+                USER_ID: user.getId()
             }};
 
 		var passwordCorrect = variables.security.validatePassword(
@@ -44,7 +45,8 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 
 		return {STATUS_CODE: 0, DATA: {
             TOKEN: token,
-            DISPLAY_NAME: user.getDisplayName()
+            DISPLAY_NAME: user.getDisplayName(),
+            USER_ID: user.getId()
         }};
     };
     
@@ -109,7 +111,11 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         }
 
         return new User(data={dummy: true});
-	};
+    };
+    
+    public struct function getAllUsers() {
+        return variables.users;
+    }
     
     // PRIVATE
 	private boolean function isLoggedIn(required string username, required struct sessionHandle) {

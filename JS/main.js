@@ -26,16 +26,15 @@ let authentication = new AuthenticationManager(backendEntryPoint, CFAjaxAuthKey)
 controllerServices.provide("notifications", notifications);
 controllerServices.provide("events", eventManager);
 controllerServices.provide("eventTypes", Events.EventTypes);
+controllerServices.provide("authentication", authentication);
 
 // Controllers
-main.controllers.menuDialog = new MainMenu(authentication, backendEntryPoint, CFAjaxAuthKey, controllerServices);
-main.controllers.wishlist = new Wishes(backendEntryPoint, CFAjaxAuthKey, controllerServices);
+main.controllers.menuDialog = new MainMenu(backendEntryPoint, CFAjaxAuthKey, controllerServices);
+main.controllers.wishlist = new Wishes(controllerServices);
 
 // Object.freeze(main);
 // Object.freeze(main.controllers);
 console.log("Everything's initialized and ready to rock and roll");
-
-// document.querySelector("#MenuButton").click();
 
 // TODO(thomas): debugging
 window.main = main;
@@ -46,46 +45,4 @@ window.main = main;
 	image/png
 	image/tiff
 	image/webp
-*/
-
-/*
-
-main: {
-
-	// All controllers have an element-map with an internal string name as key, and the value is a handle to each permanent/static DOM element
-	// All controllers also have an init-function which serves to set up all initial, permanent event handlers
-
-	controllers: {
-		mainMenu: {}
-		headersAndFooters: {}
-
-		wishlist: {
-			state: {wishlist}
-			addNewWish()
-			delete()
-			edit()
-			onOpenAddDialog()
-			onOpenEditDialog()
-			onSaveChanges()
-			onAddedNewWish()
-			onDeletedWish()
-			onWishlistLoaded()
-			renderWish()
-			removeRenderedWish()
-			onLoggedIn()
-			onLoggedOut()
-			onEnableEditMode()
-			onDisableEditMode()
-		}
-
-		editWishDialog: {
-			onSelectPictureForUpload()
-			onProvidePictureLink()
-			onPictureValidated()
-			onPictureNotValidate()
-			onSaveChanges()
-			onCloseDialog()
-		}
-	}
-}
 */

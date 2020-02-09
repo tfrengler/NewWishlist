@@ -102,7 +102,7 @@ class EventManager {
 	async trigger(eventType, parameters=null) {
 		if (!this._isValidEvent(eventType || Symbol("ARGUMENT_UNDEFINED"))) return;
 		// TODO(thomas): Remove console dump
-		console.warn(`Event triggered: ${eventType.description}`);
+		//console.warn(`Event triggered: ${eventType.description}`);
 		//if (parameters) console.log(parameters);
 		this._dispatch( new Event(eventType, parameters) );
 	}
