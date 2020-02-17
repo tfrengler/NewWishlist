@@ -42,7 +42,7 @@
 
         <cfset application.allowedAJAXControllers = {
             "authentication": ["logIn", "logOut"],
-            "wishlists": ["getWishes","saveWish","deleteWish"]
+            "wishlists": ["getWishes","saveWish","addWish","deleteWish"]
         } />
 
         <cfset application.security = new CFCs.SecurityManager() />

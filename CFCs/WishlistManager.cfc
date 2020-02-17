@@ -51,6 +51,53 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         return "";
     }
 
+    public struct function addWish(required struct data, required string token, required struct sessionHandle) {
+        if (!variables.authentication.isValidSession(arguments.token, arguments.sessionHandle))
+			return {STATUS_CODE: 1};
+
+		if (
+			NOT structKeyExists(arguments.data, "description") OR
+			NOT structKeyExists(arguments.data, "picture") OR
+			NOT structKeyExists(arguments.data, "links")
+		)
+		return {STATUS_CODE: 2};
+
+        var user = variables.authentication.getUserByToken(token=arguments.token);
+        var wishlistDir = "#variables.workingDir#/#user.getId()#";
+        var wishlistFilePath = "#wishlistDir#/#createUUID()#.json";
+        var regexPattern = createObject("java", "java.util.regex.Pattern").compile('"id":\s*(\d+),');
+        var wishIDs = [];
+        var newWishID = 0;
+        var matcher = {};
+        
+        for(var wishFile in directoryList(path=wishlistDir, recurse=false, listInfo="name", filter="*.json", type="file")) {
+
+            wishContents = fileRead("#wishlistDir#/#wishFile#");
+            matcher = regexPattern.matcher(wishContents);
+            matcher.find();
+            arrayAppend(wishIDs, val(matcher.group(1)));
+        }
+
+        newWishID = arrayMax(wishIDs) + 1;
+        if (newWishID EQ 0)
+            return {STATUS_CODE: 3} 
+        
+        try {
+            fileWrite(wishlistFilePath, serializeJSON({
+                id: newWishID,
+                description: arguments.data.description,
+                picture: arguments.data.picture,
+                links: arguments.data.links
+            }));
+        }
+        catch(error) {
+            // TODO(thomas): Dump somewhere?
+            return {STATUS_CODE: 4}
+        }
+
+        return {STATUS_CODE: 0, WISH_ID: newWishID};
+    }
+
 	public struct function saveWish(required numeric id, required struct data, required string token, required struct sessionHandle) {
 		if (!variables.authentication.isValidSession(arguments.token, arguments.sessionHandle))
 			return {STATUS_CODE: 1};
@@ -78,7 +125,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
             }
         }
         else
-            wishlistFilePath = "#wishlistDir#/#createUUID()#.json";
+            return {STATUS_CODE: 4}
 
         try {
             fileWrite(wishlistFilePath, serializeJSON({
@@ -90,7 +137,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         }
         catch(error) {
             // TODO(thomas): Dump somewhere?
-            return {STATUS_CODE: 4}
+            return {STATUS_CODE: 5}
         }
 
 		return {STATUS_CODE: 0};

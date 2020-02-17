@@ -57,11 +57,30 @@ export class Wishlist {
 		return backendRequest;
     }
 
-    addNewWish() {
-        const newWishID = this.getNewWishID();
-        this._wishes.set(newWishID, new Wish(newWishID));
+    async addNewWish(wish={}, token="UNDEFINED_ARGUMENT") {
+        if (!(wish instanceof Wish))
+            return Object.freeze({ERROR: true, DATA: `Argument 'wish' is not an instance of Wish (${wish.constructor.name})`});
 
-        return newWishID;
+		const backendRequest = await JSUtils.fetchRequest(
+			this._backendEntryPoint,
+			this._ajaxAuthKey,
+			this._backendController,
+			"addWish",
+			{
+				token: token,
+				data: wish.getData(),
+				sessionHandle: true
+			}
+		);
+
+		if (backendRequest.ERROR === false) {
+            wish._id = backendRequest.WISH_ID;
+            this._wishes.set(backendRequest.WISH_ID, wish);
+            
+            return {ERROR: false};
+		}
+
+        return backendRequest;
     }
 
     getWishes() {

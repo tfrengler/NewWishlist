@@ -119,13 +119,13 @@
 					<div class="modal-header bg-primary text-white">
 						<h5 class="modal-title">LINKS</h5>
 					</div>
-
+                    <!--- Do valid URL checking here --->
 					<div id="Edit_Links_Container" class="modal-body">
-						<input type="text" class="form-control mb-1" id="Edit_Link1" />
-						<input type="text" class="form-control mb-1" id="Edit_Link2" />
-						<input type="text" class="form-control mb-1" id="Edit_Link3" />
-						<input type="text" class="form-control mb-1" id="Edit_Link4" />
-						<input type="text" class="form-control mb-1" id="Edit_Link5" />
+						<input type="url" class="form-control mb-1" id="Edit_Link1" />
+						<input type="url" class="form-control mb-1" id="Edit_Link2" />
+						<input type="url" class="form-control mb-1" id="Edit_Link3" />
+						<input type="url" class="form-control mb-1" id="Edit_Link4" />
+						<input type="url" class="form-control mb-1" id="Edit_Link5" />
 					</div>
 
 					<div class="modal-footer">

@@ -150,7 +150,8 @@ export class Wishes {
 			linkIcon.classList.add("fas","fa-link");
 
 			const hyperlink = document.createElement("a");
-			hyperlink.setAttribute("href", linkURL);
+            // Needs to have http(s) prepended or the damn thing will point at the current URL instead with the link appended
+            hyperlink.setAttribute("href", linkURL); 
 
             // TODO(thomas): Improve this to make it more failsafe
 			let linkText;
@@ -189,7 +190,7 @@ export class Wishes {
 		const button = document.createElement("button");
 		button.classList.add("btn","btn-warning");
 
-		button.id = "EditWish_" + id;
+		button.dataset.wishid = id;
 		button.dataset.toggle = "modal";
         button.dataset.target = "#EditWish";
         
@@ -211,7 +212,7 @@ export class Wishes {
 		const button = document.createElement("button");
 		button.classList.add("btn","btn-danger"); 
 
-		button.id = "DeleteWish_" + id;
+		button.dataset.wishid = id;
 
 		const icon = document.createElement("i");
 		icon.classList.add("fas","fa-trash-alt","fa-3x");
@@ -224,7 +225,9 @@ export class Wishes {
 
     onOpenEditDialog(event) {
 
-		const callingWishID = parseInt(event.relatedTarget.dataset.wishid);
+        const callingWishID = parseInt(event.relatedTarget.dataset.wishid);
+        if (isNaN(callingWishID)) throw new Error("Could not parse wish id when opening edit dialog");
+
         this._elements.editWishDialog.dataset.activewish = callingWishID;
 		
 		if (callingWishID === 0) {
@@ -263,6 +266,13 @@ export class Wishes {
         this._elements.saveWishesLoader.classList.remove("hidden");
 
         const callingWishID = parseInt(this._elements.editWishDialog.dataset.activewish);
+        let newWish = false;
+        let changesSavedMessage = "Changes saved";
+
+        if (callingWishID === 0) {
+            newWish = true;
+            changesSavedMessage = "New wish added";
+        }
 
         let links = new Array(5);
         this._elements.editLinksTextElements.forEach((textElement, index)=> links[index] = textElement.value.trim());
@@ -274,7 +284,8 @@ export class Wishes {
             links
         );
 
-        if (this._wishlist.getWish(callingWishID).equalTo(modifiedWish)) {
+        // Only relevant for existing wishes
+        if (!newWish && this._wishlist.getWish(callingWishID).equalTo(modifiedWish)) {
             this._elements.closeEditWishDialogButton.disabled = false;
             this._elements.saveWishChangesButton.disabled = false;
             this._elements.saveWishesLoader.classList.add("hidden");
@@ -283,12 +294,19 @@ export class Wishes {
             return;
         }
 
-        const saveWishResponse = await this._wishlist.saveWish(modifiedWish, this._token);
-        
-        if (saveWishResponse.ERROR === true)
-            this._services.get("notifications").notifyError("Failed to save wish changes\nContact the admin :/", 3000);
+        let backendResponse;
+
+        if (newWish)
+            backendResponse = await this._wishlist.addNewWish(modifiedWish, this._services.get("authentication").getToken());
         else
-            this._services.get("notifications").notifySuccess("Changes saved");
+            backendResponse = await this._wishlist.saveWish(modifiedWish, this._services.get("authentication").getToken());
+        
+        if (backendResponse.ERROR === true)
+            this._services.get("notifications").notifyError("Failed to save wish changes\nContact the admin :/", 3000);
+        else {
+            this._services.get("notifications").notifySuccess(changesSavedMessage);
+            if (newWish) this._createDOMWish(modifiedWish);
+        }
 
         this._elements.closeEditWishDialogButton.disabled = false;
         this._elements.saveWishChangesButton.disabled = false;
