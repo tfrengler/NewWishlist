@@ -74,7 +74,7 @@ export class Wishlist {
 		);
 
 		if (backendRequest.ERROR === false) {
-            wish._id = backendRequest.WISH_ID;
+            wish.setId(backendRequest.WISH_ID);
             this._wishes.set(backendRequest.WISH_ID, wish);
             
             return {ERROR: false};

@@ -18,24 +18,35 @@ export class Wish {
 			this._description = "";
 
 		if (links instanceof Array)
-			this.changeLinks(links);
+			for(let index = 0; index <= 4; index++)
+				this._links[index] = links[index] || "";
 		else
 			this._links = new Array(5);
+
+		let immutable = {
+			configurable: false,
+			enumerable: false,
+			writable: false
+		};
+
+		Object.defineProperties(this, {
+			"_links": immutable,
+			"_picture": immutable,
+			"_description": immutable
+		});
 
 		return Object.seal(this);
 	}
 
-	changePicture(data="") {
-		this._picture = data;
-	}
+	setId(newId=0) {
+		if (newId <= 0 || this._id > 0) return;
 
-	changeDescription(data="") {
-		this._description = data;
-	}
-
-	changeLinks(data=[]) {
-		for(let index = 0; index <= 4; index++)
-			this._links[index] = data[index] || "";
+		this._id = newId;
+		Object.defineProperty(this, "_id", {
+			configurable: false,
+			enumerable: false,
+			writable: false
+		});
 	}
 
 	getData() {
