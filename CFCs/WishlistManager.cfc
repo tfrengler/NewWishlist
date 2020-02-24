@@ -147,13 +147,22 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 		if (!variables.authentication.isValidSession(arguments.token, arguments.sessionHandle))
 			return {STATUS_CODE: 1};
 
+        var user = variables.authentication.getUserByToken(token=arguments.token);
+        var existingWishFile = variables.getExistingWish(arguments.id, user.getId());
 		var wishlistDir = "#variables.workingDir#/#user.getId()#";
-		var wishlistFilePath = "#wishlistDir#/#arguments.id#";
+		var wishlistFilePath = "#wishlistDir#/#existingWishFile#";
 
 		if (NOT fileExists(wishlistFilePath))
 			return {STATUS_CODE: 2};
-		
-		// fileDelete(wishlistFilePath);
+        
+        try {
+            fileDelete(wishlistFilePath);
+        }
+        catch(error) {
+            // TODO(thomas): Dump somewhere?
+            return {STATUS_CODE: 3}
+        }
+        
 		return {STATUS_CODE: 0};
 	}
 }

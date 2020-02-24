@@ -25,7 +25,9 @@ export class Wishes {
             saveWishesLoader: document.querySelector("#SaveWishChanges i"),
 			closeEditWishDialogButton: document.getElementById("CloseEditWishDialog"),
 			welcomeMessageContainer: document.getElementById("WelcomeMessageRow"),
-			activeWishlistOwnerNameElement: document.getElementById("ActiveWishlistOwnerName")
+            activeWishlistOwnerNameElement: document.getElementById("ActiveWishlistOwnerName"),
+            deleteWishDialogElement: document.getElementById("DeleteWishDialog"),
+            confirmWishDeleteButton: document.getElementById("ConfirmWishDelete")
         });
 
 		let immutable = {
@@ -66,8 +68,11 @@ export class Wishes {
         
         $(this._elements.editWishDialog).on('show.bs.modal', (event)=> this.onOpenEditDialog(event));
         $(this._elements.editWishDialog).on('hide.bs.modal', (event)=> this.onCloseEditDialog(event));
-        this._elements.saveWishChangesButton.addEventListener("click", (event)=> this.onSaveWish(event));
 
+        $(this._elements.deleteWishDialogElement).on('show.bs.modal', (event)=> this.onOpenDeleteDialog(event));
+
+        this._elements.saveWishChangesButton.addEventListener("click", (event)=> this.onSaveWish(event));
+        this._elements.confirmWishDeleteButton.addEventListener("click", (event)=> this.onDeleteWish(event));
         this._elements.editPictureImgElement.addEventListener("error", JSUtils.onImageNotFound)
 	}
 
@@ -111,6 +116,13 @@ export class Wishes {
         const secondLastRowIndex = document.querySelectorAll(`#${this._elements.wishlistContainer.id} > div.row`).length - 1;
         this._elements.wishlistContainer.insertBefore(wishNode, this._elements.wishlistContainer.children[secondLastRowIndex]);
     }
+
+    _removeWishFromDOM(id=0) {
+        if (!(id > 0)) throw new Error("Cannot remove wish from DOM. Id is 0 or below: " + id);
+
+        let wishNode = document.querySelector(`section[data-wishid='${id}']`);
+        wishNode.parentElement.remove();
+    }
 	
 	_createDOMWish(wishInstance) {
         if (wishInstance.constructor.name != "Wish")
@@ -151,14 +163,19 @@ export class Wishes {
 
 			const hyperlink = document.createElement("a");
             // Needs to have http(s) prepended or the damn thing will point at the current URL instead with the link appended
-            hyperlink.setAttribute("href", linkURL); 
-
-            // TODO(thomas): Improve this to make it more failsafe
-			let linkText;
-			if (linkURL.search(this._linkDomainRegex) > -1)
-				linkText = `LINK (${linkURL.match(this._linkDomainRegex)[2]})`;
-			else
-				linkText = "LINK";
+            if (linkURL.match(/^http/))
+                hyperlink.setAttribute("href", linkURL);
+            else
+            hyperlink.setAttribute("href", "http://" + linkURL);
+            // We are not going to assume httpS, but rather hope that whatever domain this is has http to https redirect in place...
+            
+            let linkText = "LINK (unknown)";
+            
+            if (linkURL.search(this._linkDomainRegex) > -1) {
+                let linkDomainMatch = linkURL.match(this._linkDomainRegex);
+                if (linkDomainMatch > 2)
+                    linkText = linkDomainMatch[2]
+            }
 			
 			hyperlink.innerText = linkText;
 
@@ -212,7 +229,9 @@ export class Wishes {
 		const button = document.createElement("button");
 		button.classList.add("btn","btn-danger"); 
 
-		button.dataset.wishid = id;
+        button.dataset.wishid = id;
+        button.dataset.toggle = "modal"
+        button.dataset.target = `#${this._elements.deleteWishDialogElement.id}`;
 
 		const icon = document.createElement("i");
 		icon.classList.add("fas","fa-trash-alt","fa-3x");
@@ -252,12 +271,28 @@ export class Wishes {
         this._elements.editLinksTextElements.forEach((textElement)=> textElement.value = "");
     }
     
-    deleteWish(id=-1) {
+    onOpenDeleteDialog(event) {
+        const callingWishID = parseInt(event.relatedTarget.dataset.wishid);
+        if (isNaN(callingWishID)) throw new Error("Could not parse wish id when opening delete dialog");
 
+        this._elements.deleteWishDialogElement.dataset.wishid = callingWishID;
     }
 
-    addWish() {
+    async onDeleteWish() {
+        $(this._elements.deleteWishDialogElement).modal("hide");
+
+        const wishIDToDelete = parseInt(this._elements.deleteWishDialogElement.dataset.wishid);
+        this._elements.deleteWishDialogElement.dataset.wishid = 0;
+
+        if (isNaN(wishIDToDelete) || wishIDToDelete == 0) throw new Error("Could not parse wish ID to delete or it's 0");
+        let backendResponse = await this._wishlist.deleteWish(wishIDToDelete, this._services.get("authentication").getToken());
         
+        if (backendResponse.ERROR === true)
+            this._services.get("notifications").notifyError("Failed to delete wish\nContact the admin :/", 3000);
+        else {
+            this._removeWishFromDOM(wishIDToDelete);
+            this._services.get("notifications").notifySuccess("Wish deleted");
+        }
     }
 
     async onSaveWish() {

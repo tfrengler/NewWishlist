@@ -137,7 +137,25 @@
 					</div>
 				</div>
 			</div>
-		</div>
+        </div>
+        
+        <!--- DELETE WISH CONFIRMATION MODAL --->
+        <div id="DeleteWishDialog" data-wishid="0" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">DELETE WISH</h5>
+                </div>
+                <div class="modal-body">
+                    <p>You sure? Beware that this cannot be undone</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="ConfirmWishDelete" class="btn btn-success" data-dismiss="modal">YES</button>
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">CANCEL</button>
+                </div>
+                </div>
+            </div>
+        </div>
 
 		<!--- TOP HEADER --->
 		<header>
