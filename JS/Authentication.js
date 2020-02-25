@@ -49,7 +49,7 @@ export class AuthenticationManager {
 		if (backendRequest.ERROR === false) {
 			this._token = backendRequest.DATA.TOKEN;
 			this._displayName = backendRequest.DATA.DISPLAY_NAME;
-			this._userID = backendRequest.DATA.USER_ID;
+			this._userID = parseInt(backendRequest.DATA.USER_ID);
 
 			return {ERROR: false};
 		}

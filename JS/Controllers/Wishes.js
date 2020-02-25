@@ -11,7 +11,7 @@ export class Wishes {
 
 		this._services = services;
         this._wishlist = null; // Mutable
-		this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)/");
+		this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)");
 
 		this._elements = Object.freeze({
             addNewWishButton: document.getElementById("AddWish"),
@@ -50,19 +50,19 @@ export class Wishes {
 	_init() {
 		this._services.get("events").subscribe(
 			this._services.get("eventTypes").WISHLIST_LOADED,
-			this._onWishlistLoaded,
+			this.onWishlistLoaded,
 			this
         );
 
         this._services.get("events").subscribe(
 			this._services.get("eventTypes").LOGIN_SUCCESS,
-			this._onUserLoginOrLogout,
+			this.onUserLoginOrLogout,
 			this
         );
 
         this._services.get("events").subscribe(
 			this._services.get("eventTypes").LOGOUT_SUCCESS,
-			this._onUserLoginOrLogout,
+			this.onUserLoginOrLogout,
 			this
         );
         
@@ -76,7 +76,7 @@ export class Wishes {
         this._elements.editPictureImgElement.addEventListener("error", JSUtils.onImageNotFound)
 	}
 
-	_onUserLoginOrLogout() {
+	onUserLoginOrLogout() {
 		if (this._eligableForEditMode()) {
 			document.querySelectorAll(".wish-edit").forEach(divElement=> divElement.classList.remove("hidden"));
 			document.querySelectorAll(".wish-delete").forEach(divElement=> divElement.classList.remove("hidden"));
@@ -90,7 +90,7 @@ export class Wishes {
 		this._elements.addNewWishButton.classList.add("hidden");
 	}
 	
-	_onWishlistLoaded(data) {
+	onWishlistLoaded(data) {
         if (data.wishlist.constructor.name !== "Wishlist")
             throw new Error("Expected event data to be an instance of Wishlist, but it is not: " + data.wishlist.constructor.name)
 
@@ -99,12 +99,16 @@ export class Wishes {
 		document.querySelectorAll(".wish-row").forEach(wishRow=> wishRow.remove());
 
         this._wishlist = data.wishlist;
-		this._wishlist.getWishes().forEach(wish=> this._createDOMWish(wish));
+
+        if (this._wishlist.getWishes().size === 0)
+            this._services.get("notifications").notifyWarning("Wishlist is empty, nothing to see", 3000);
+        else
+            this._wishlist.getWishes().forEach(wish=> this._createDOMWish(wish));
 		
-		if (this._eligableForEditMode()) 
-			this._elements.addNewWishButton.classList.remove("hidden");
+		if (this._eligableForEditMode())
+            this._elements.addNewWishButton.classList.remove("hidden");
 		else
-			this._elements.addNewWishButton.classList.add("hidden");
+            this._elements.addNewWishButton.classList.add("hidden");
 	}
 	
 	_eligableForEditMode() {
@@ -149,41 +153,51 @@ export class Wishes {
 
 		const description = document.createElement("div");
 		description.classList.add("wish-item","wish-description","border","rounded","overflow-hidden","p-3","mr-3");
-		description.innerText = wishInstance.getDescription();
+		description.innerText = wishInstance.getDescription() || "(no description)";
 
 		const linksContainer = document.createElement("div");
-		linksContainer.classList.add("wish-item","wish-links","border","rounded","p-3","text-primary");
+        linksContainer.classList.add("wish-item","wish-links","border","rounded","p-3","text-primary");
+        
+        let hasLinks = false;
+        wishInstance.getLinks().forEach((linkURL)=> {
+            if (linkURL.length > 0) hasLinks = true;
+        });
 
-		wishInstance.getLinks().forEach((linkURL)=> {
-			if (!linkURL.length) return;
-			const enclosingDiv = document.createElement("div");
+        if (!hasLinks)
+            linksContainer.innerText = "(no links)";
+        else {
+            wishInstance.getLinks().forEach((linkURL)=> {
+                if (!linkURL.length) return;
+                const enclosingDiv = document.createElement("div");
 
-			const linkIcon = document.createElement("i");
-			linkIcon.classList.add("fas","fa-link");
+                const linkIcon = document.createElement("i");
+                linkIcon.classList.add("fas","fa-link");
 
-			const hyperlink = document.createElement("a");
-            // Needs to have http(s) prepended or the damn thing will point at the current URL instead with the link appended
-            if (linkURL.match(/^http/))
-                hyperlink.setAttribute("href", linkURL);
-            else
-            hyperlink.setAttribute("href", "http://" + linkURL);
-            // We are not going to assume httpS, but rather hope that whatever domain this is has http to https redirect in place...
-            
-            let linkText = "LINK (unknown)";
-            
-            if (linkURL.search(this._linkDomainRegex) > -1) {
-                let linkDomainMatch = linkURL.match(this._linkDomainRegex);
-                if (linkDomainMatch > 2)
-                    linkText = linkDomainMatch[2]
-            }
-			
-			hyperlink.innerText = linkText;
+                const hyperlink = document.createElement("a");
+                // Needs to have http(s) prepended or the damn thing will point at the current URL instead with the link appended
+                if (linkURL.match(/^http/))
+                    hyperlink.setAttribute("href", linkURL);
+                else
+                    hyperlink.setAttribute("href", "http://" + linkURL);
+                // We are not going to assume https, but rather hope that whatever domain this is has http to https redirect in place...
+                
+                let linkText = "LINK (unknown)";
+                
+                if (linkURL.search(this._linkDomainRegex) > -1) {
 
-			enclosingDiv.appendChild(linkIcon);
-			linkIcon.appendChild(hyperlink);
+                    let linkDomainMatch = linkURL.match(this._linkDomainRegex);
+                    if (linkDomainMatch.length > 2)
+                        linkText = `LINK (${linkDomainMatch[2]})`;
+                }
+                
+                hyperlink.innerText = linkText;
 
-			linksContainer.appendChild(enclosingDiv);
-		});
+                enclosingDiv.appendChild(linkIcon);
+                linkIcon.appendChild(hyperlink);
+
+                linksContainer.appendChild(enclosingDiv);
+            });
+        }
         
         // Putting it all together
         container.appendChild(this._createDOMWishEditButton(wishInstance.getId()));
