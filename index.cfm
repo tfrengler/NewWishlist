@@ -85,26 +85,14 @@
 
 					<div class="modal-body">
 						<div class="d-flex justify-content-center mb-2" >
-							<img id="Edit_Picture" class="border rounded" referrerpolicy="no-referrer" validate="never" />
+							<img id="Edit_Picture" class="border rounded" referrerpolicy="no-referrer" validate="never" src="" />
 						</div>
 
-						<b>UPLOAD A FILE:</b>
+						<b>PROVIDE A LINK:</b>
 						<div class="d-flex align-items-center" >
-							<input id="Edit_Picture_File" type="file" class="form-control mb-2" />
+							<input id="Edit_Picture_URL" type="url" class="form-control" placeholder="www.someurl.com/somepicture.jpeg" />
 							&nbsp;
-							<!--- <i class="fas fa-spinner fa-spin fa-2x text-info invisible"></i> --->
-							<!--- <i class="far fa-times-circle fa-2x text-danger invisible"></i> --->
-							<i class="far fa-check-circle fa-2x text-success invisible"></i>
-						</div>
-
-
-						<b>OR PROVIDE A LINK:</b>
-						<div class="d-flex align-items-center" >
-							<input id="Edit_Picture_URL" type="text" class="form-control" placeholder="www.someurl.com/somepicture" />
-							&nbsp;
-							<!--- <i class="fas fa-spinner fa-spin fa-2x text-info invisible"></i> --->
-							<!--- <i class="far fa-times-circle fa-2x text-danger invisible"></i> --->
-							<i class="far fa-check-circle fa-2x text-success invisible"></i>
+							<i id="EditPictureStatus" class="fas far fa-2x hidden"></i>
 						</div>
 					</div>
 

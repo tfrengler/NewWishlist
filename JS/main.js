@@ -38,11 +38,16 @@ console.log("Everything's initialized and ready to rock and roll");
 
 // TODO(thomas): debugging
 window.main = main;
+
+// $('#EditWish').modal('show');
+
+/*
 document.getElementById("MenuButton").click();
 document.querySelector("[data-wishlist-owner-id='1']").click();
 document.getElementById("Username").value = "tfrengler";
 document.getElementById("Password").value = "tf499985";
 main.controllers.menuDialog.logIn({srcElement: document.getElementById("LogIn")});
+*/
 
 /*
 	image/jpeg

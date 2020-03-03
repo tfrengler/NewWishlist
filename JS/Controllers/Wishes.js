@@ -11,7 +11,7 @@ export class Wishes {
 
 		this._services = services;
         this._wishlist = null; // Mutable
-		this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)");
+        this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)");
 
 		this._elements = Object.freeze({
             addNewWishButton: document.getElementById("AddWish"),
@@ -27,7 +27,8 @@ export class Wishes {
 			welcomeMessageContainer: document.getElementById("WelcomeMessageRow"),
             activeWishlistOwnerNameElement: document.getElementById("ActiveWishlistOwnerName"),
             deleteWishDialogElement: document.getElementById("DeleteWishDialog"),
-            confirmWishDeleteButton: document.getElementById("ConfirmWishDelete")
+            confirmWishDeleteButton: document.getElementById("ConfirmWishDelete"),
+            editPictureStatusIndictor: document.getElementById("EditPictureStatus")
         });
 
 		let immutable = {
@@ -262,6 +263,7 @@ export class Wishes {
         if (isNaN(callingWishID)) throw new Error("Could not parse wish id when opening edit dialog");
 
         this._elements.editWishDialog.dataset.activewish = callingWishID;
+        this._elements.editPictureStatusIndictor.classList.add("hidden");
 		
 		if (callingWishID === 0) {
 			this._elements.editPictureImgElement.src = "";
@@ -343,6 +345,28 @@ export class Wishes {
             return;
         }
 
+        let validatePicture = false;
+
+        if (newWish && modifiedWish.getPicture().length)
+            validatePicture = true;
+        else if (!newWish && this._wishlist.getWish(callingWishID).getPicture() !== modifiedWish.getPicture())
+            validatePicture = true;
+
+        if (validatePicture) {
+            var pictureURLValid = await this._resolveNewImage(modifiedWish.getPicture());
+
+            if (!pictureURLValid)
+            {
+                this._elements.closeEditWishDialogButton.disabled = false;
+                this._elements.saveWishChangesButton.disabled = false;
+                this._elements.saveWishesLoader.classList.add("hidden");
+
+                return;
+            }
+
+            this._elements.editPictureImgElement.src = modifiedWish.getPicture();
+        }
+
         let backendResponse;
 
         if (newWish)
@@ -355,11 +379,58 @@ export class Wishes {
         else {
             this._services.get("notifications").notifySuccess(changesSavedMessage);
             if (newWish) this._createDOMWish(modifiedWish);
+            //TODO(thomas): Re-render/update the wish on the DOM once it's been confirmed saved/updated on the backend
         }
 
         this._elements.closeEditWishDialogButton.disabled = false;
         this._elements.saveWishChangesButton.disabled = false;
         this._elements.saveWishesLoader.classList.add("hidden");
+    }
+
+    async _resolveNewImage(imageURL) {
+
+        const successClassList = ["fa-check-circle","text-success"];
+        const waitingClassList = ["fa-spinner","fa-spin","text-info"];
+        const failureClassList = ["fa-times-circle","text-danger"];
+
+        this._elements.editPictureStatusIndictor.classList.remove(...successClassList);
+        this._elements.editPictureStatusIndictor.classList.remove(...waitingClassList);
+        this._elements.editPictureStatusIndictor.classList.remove(...failureClassList);
+
+        this._elements.editPictureStatusIndictor.classList.add(...waitingClassList);
+        this._elements.editPictureStatusIndictor.classList.remove("hidden");
+
+        const backendResult = await fetch(`TestImageURL.cfm?ImageURL=${encodeURIComponent(imageURL)}`, {mode: "no-cors"})
+        .then(response=> response.json())
+        .then(jsonResponse=> {
+            if (jsonResponse.STATUS == 1) {
+                this._services.get("notifications").notifyError("Couldn't verify the picture URL. The URL isn't reachable or valid", 3000);
+                this._elements.editPictureStatusIndictor.classList.remove(...waitingClassList);
+                this._elements.editPictureStatusIndictor.classList.add(...failureClassList);
+                return false;
+            }
+
+            if (jsonResponse.STATUS == 2) {
+                this._services.get("notifications").notifyError("Couldn't verify the picture URL. No data is returned or not in the right format", 3000);
+                this._elements.editPictureStatusIndictor.classList.remove(...waitingClassList);
+                this._elements.editPictureStatusIndictor.classList.add(...failureClassList);
+                return false;
+            }
+
+            if (jsonResponse.STATUS == 3) {
+                this._services.get("notifications").notifyError("Couldn't verify the picture URL. The data returned is not an image or a valid image format", 3000);
+                this._elements.editPictureStatusIndictor.classList.remove(...waitingClassList);
+                this._elements.editPictureStatusIndictor.classList.add(...failureClassList);
+                return false;
+            }
+
+            this._elements.editPictureStatusIndictor.classList.remove(...waitingClassList);
+            this._elements.editPictureStatusIndictor.classList.add(...successClassList);
+
+            return true;
+        });
+
+        return backendResult;
     }
 }
 
