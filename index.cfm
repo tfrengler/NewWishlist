@@ -9,7 +9,6 @@
 
 		<link rel="stylesheet" href="CSS/font_awesome/css/all.css" />
 		<link rel="stylesheet" href="CSS/bootstrap/bootstrap.min.css" />
-		<!--- <link rel="stylesheet" href="Assets/css/main.css" /> --->
 
 		<!--- 3rd Party --->
 		<script src="JS/bootstrap/jquery-3.4.1.slim.min.js"></script>
@@ -23,7 +22,7 @@
             <cfset session.ajaxAuthKey = authKey />
         </cfsilent>
 
-        <script><cfoutput>const CFAjaxAuthKey = "#authKey#";</cfoutput></script>
+        <script><cfset writeOutput("const CFAjaxAuthKey = '#authKey#';") /></script>
 		<script type="module" defer src="JS/main.js" ></script>
 	</head>
 
@@ -55,7 +54,7 @@
 
 					<div class="modal-body">
 						<input type="text" id="Username" class="form-control" placeholder="Username" />
-						<input type="text" id="Password" class="form-control" placeholder="Password" />
+						<input type="password" id="Password" class="form-control" placeholder="Password" />
 
 						<button id="LogIn" type="button" class="btn btn-primary" disabled>
 							LOG IN
@@ -85,7 +84,7 @@
 
 					<div class="modal-body">
 						<div class="d-flex justify-content-center mb-2" >
-							<img id="Edit_Picture" class="border rounded" referrerpolicy="no-referrer" validate="never" src="" />
+							<img id="Edit_Picture" class="border rounded" referrerpolicy="no-referrer" validate="never" src="Media/Images/ImageNotFound.jpeg" />
 						</div>
 
 						<b>PROVIDE A LINK:</b>
@@ -153,7 +152,7 @@
 					<button id="MenuButton" class="btn btn-info" data-toggle="modal" data-target="#MainMenu" >
 						<i class="fas fa-bars"></i>
 					</button>
-					<span class="btn btn-warning" >
+					<span id="ActiveWishlistOwnerNameContainer" class="btn btn-warning" >
 						<i class="fas fa-user"></i>&nbsp;
 						<span id="ActiveWishlistOwnerName"></span>
 					</span>

@@ -12,6 +12,7 @@ body {
 img {
 	width: 100%;
 	height: 100%;
+	object-fit: contain;
 }
 
 #Username, #Password {
@@ -160,4 +161,20 @@ main {
 
 .wish-edit, .wish-delete {
 	align-self: center;
+}
+
+/* ^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$ */
+/* input[type='url']:invalid {
+	border-color: red;
+} */
+
+/* Funny little override because I like the btn-style so much but the element is not actually a button... */
+#ActiveWishlistOwnerNameContainer {
+	cursor: auto !important;
+	transition: none !important;
+}
+
+#ActiveWishlistOwnerNameContainer:hover {
+	background-color: #ffc107 !important;
+	border-color: #ffc107 !important;
 }

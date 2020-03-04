@@ -74,7 +74,7 @@ export class Wishes {
 
         this._elements.saveWishChangesButton.addEventListener("click", (event)=> this.onSaveWish(event));
         this._elements.confirmWishDeleteButton.addEventListener("click", (event)=> this.onDeleteWish(event));
-        this._elements.editPictureImgElement.addEventListener("error", JSUtils.onImageNotFound)
+        this._elements.editPictureImgElement.addEventListener("error", JSUtils.onImageNotFound);
 	}
 
 	onUserLoginOrLogout() {
@@ -167,31 +167,17 @@ export class Wishes {
         if (!hasLinks)
             linksContainer.innerText = "(no links)";
         else {
-            wishInstance.getLinks().forEach((linkURL)=> {
-                if (!linkURL.length) return;
+            this._resolveLinkText(wishInstance.getLinks()).forEach((linkPair)=> {
+                if (!linkPair.URL.length) return;
                 const enclosingDiv = document.createElement("div");
 
                 const linkIcon = document.createElement("i");
                 linkIcon.classList.add("fas","fa-link");
 
                 const hyperlink = document.createElement("a");
-                // Needs to have http(s) prepended or the damn thing will point at the current URL instead with the link appended
-                if (linkURL.match(/^http/))
-                    hyperlink.setAttribute("href", linkURL);
-                else
-                    hyperlink.setAttribute("href", "http://" + linkURL);
-                // We are not going to assume https, but rather hope that whatever domain this is has http to https redirect in place...
-                
-                let linkText = "LINK (unknown)";
-                
-                if (linkURL.search(this._linkDomainRegex) > -1) {
-
-                    let linkDomainMatch = linkURL.match(this._linkDomainRegex);
-                    if (linkDomainMatch.length > 2)
-                        linkText = `LINK (${linkDomainMatch[2]})`;
-                }
-                
-                hyperlink.innerText = linkText;
+                hyperlink.setAttribute("target", "_blank");
+                hyperlink.innerText = linkPair.TEXT;
+                hyperlink.href = linkPair.URL;
 
                 enclosingDiv.appendChild(linkIcon);
                 linkIcon.appendChild(hyperlink);
@@ -211,7 +197,41 @@ export class Wishes {
         
 		wishRow.appendChild(container);
         this._insertWishInDOM(wishRow); 
-	}
+    }
+    
+    _resolveLinkText(linkCollection=[]) {
+
+        const returnData = [
+            {URL: "", TEXT: "LINK (unknown)"},
+            {URL: "", TEXT: "LINK (unknown)"},
+            {URL: "", TEXT: "LINK (unknown)"},
+            {URL: "", TEXT: "LINK (unknown)"},
+            {URL: "", TEXT: "LINK (unknown)"}
+        ];
+
+        if (!linkCollection.length || linkCollection.length > 5)
+            return returnData;
+
+        linkCollection.forEach((linkURL, index)=> {
+            if (!linkURL.length) return;
+
+            // Needs to have http(s) prepended or the damn thing will point at the current URL instead with the link appended
+            if (linkURL.match(/^http/))
+                returnData[index].URL = linkURL;
+            else
+                returnData[index].URL = "http://" + linkURL;
+            // We are not going to assume https, but rather hope that whatever domain this is has http to https redirect in place...
+            
+            if (linkURL.search(this._linkDomainRegex) > -1) {
+
+                let linkDomainMatch = linkURL.match(this._linkDomainRegex);
+                if (linkDomainMatch.length > 2)
+                    returnData[index].TEXT = `LINK (${linkDomainMatch[2]})`;
+            }
+        });
+
+        return returnData;
+    }
 
 	_createDOMWishEditButton(id=-1) {
 
@@ -378,13 +398,56 @@ export class Wishes {
             this._services.get("notifications").notifyError("Failed to save wish changes\nContact the admin :/", 3000);
         else {
             this._services.get("notifications").notifySuccess(changesSavedMessage);
-            if (newWish) this._createDOMWish(modifiedWish);
-            //TODO(thomas): Re-render/update the wish on the DOM once it's been confirmed saved/updated on the backend
+            if (newWish)
+                this._createDOMWish(modifiedWish);
+            else
+                this._updateDOMWish(modifiedWish);
         }
 
         this._elements.closeEditWishDialogButton.disabled = false;
         this._elements.saveWishChangesButton.disabled = false;
         this._elements.saveWishesLoader.classList.add("hidden");
+    }
+
+    _updateDOMWish(wishInstance={}) {
+        if (!(wishInstance instanceof Wish))
+            throw new Error("Error updating wish in DOM. Argument 'wishInstance' is not an instance of Wish: " + wishInstance.constructor.name);
+
+        const existingDOMWish = document.querySelector(`section[data-wishid='${wishInstance.getId()}']`);
+        if (!existingDOMWish)
+            throw new Error("Error updating wish in DOM. Can't seem to find an existing wish with ID: " + wishInstance.getId());
+
+        existingDOMWish.querySelector("div.wish-image img").src = wishInstance.getPicture();
+        existingDOMWish.querySelector("div.wish-description").innerText = wishInstance.getDescription() || "(no description)";
+        const wishLinksContainer = existingDOMWish.querySelector("div.wish-links");
+        wishLinksContainer.innerHTML = "";
+
+        let hasLinks = false;
+        wishInstance.getLinks().forEach((linkURL)=> {
+            if (linkURL.length > 0) hasLinks = true;
+        });
+
+        if (!hasLinks)
+            wishLinksContainer.innerText = "(no links)";
+        else {
+            this._resolveLinkText(wishInstance.getLinks()).forEach((linkPair)=> {
+                if (!linkPair.URL.length) return;
+                const enclosingDiv = document.createElement("div");
+
+                const linkIcon = document.createElement("i");
+                linkIcon.classList.add("fas","fa-link");
+
+                const hyperlink = document.createElement("a");
+                hyperlink.setAttribute("target", "_blank");
+                hyperlink.innerText = linkPair.TEXT;
+                hyperlink.href = linkPair.URL;
+
+                enclosingDiv.appendChild(linkIcon);
+                linkIcon.appendChild(hyperlink);
+
+                wishLinksContainer.appendChild(enclosingDiv);
+            });
+        }
     }
 
     async _resolveNewImage(imageURL) {
@@ -433,45 +496,3 @@ export class Wishes {
         return backendResult;
     }
 }
-
-/*
-
-<section id="WishID_X" class="wish border border-dark rounded p-3 d-inline-flex flex-row bg-light mb-3">
-
-	<div class="wish-item wish-edit p-3" >
-		<button id="EditWish_X" class="btn btn-warning" data-toggle="modal" data-target="#EditWish" >
-			<i class="fas fa-edit fa-3x"></i>
-		</button>
-	</div>
-
-	<div class="wish-item wish-image border rounded mr-3 overflow-hidden">
-		<img onerror="onImageNotFound(this)" class="rounded" src="Media/Images/xxx.jpg" referrerpolicy="no-referrer" validate="never" />
-	</div>
-
-	<div class="wish-item wish-description border rounded overflow-hidden p-3 mr-3" >
-		The Other Kind of Life<br/>
-		by Shamus Young<br/>
-		ISBN-10: 1790478510<br/>
-		ISBN-13: 978-1790478514<br/>
-	</div>
-
-	<div class="wish-item wish-links border rounded p-3 text-primary" >
-		<div><i class="fas fa-link">
-			<a href="#">LINK</a>
-		</i></div>
-		<div><i class="fas fa-link">
-			<a href="#">LINK</a>
-		</i></div>
-		<div><i class="fas fa-link">
-			<a href="#">LINK</a>
-		</i></div>
-	</div>
-
-	<div class="wish-item wish-delete p-3" >
-		<button id="DeleteWish_X" class="btn btn-danger" >
-			<i class="fas fa-trash-alt fa-3x"></i>
-		</button>
-	</div>
-</section>
-
-*/
