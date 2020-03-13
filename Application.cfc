@@ -13,6 +13,8 @@
 
     <cffunction name="onApplicationStart" returnType="boolean" output="true" >
 
+        <cfset application.nonce = "" />
+
 		<cfset application["normalizePath"] = function(required string path) {
 			<!--- We do two passes to catch any double-forward slashes that are created in the first pass --->
 			arguments.path = reReplace(arguments.path, "/{2,}|\\{1,}", "/", "ALL");
@@ -22,15 +24,14 @@
         <cfset var configFileLocation = this.root & "config.json" />
 
         <cfif NOT fileExists(configFileLocation) >
-            <cfthrow message="Error initializing application" detail="Config-file does not exist: #configFileLocation#" />
+            <cfthrow message="Error initializing application" detail="Config-file does not exist" />
         </cfif>
         <cfset var config = deserializeJSON(fileRead(configFileLocation)) />
 
 		<cfset application.mapping = {
             logs: application.normalizePath(path=this.root & config.logFolder),
             userData: application.normalizePath(path=this.root & config.userDataFolder),
-            wishlistData: application.normalizePath(path=this.root & config.wishlistDataFolder),
-            tempFiles: application.normalizePath(path=this.root & config.tempFiles)
+            wishlistData: application.normalizePath(path=this.root & config.wishlistDataFolder)
         } />
 
         <cfset var mapping = "" />
@@ -52,14 +53,22 @@
 		<cfreturn true />
 	</cffunction>
 
-	<cffunction name="onRequestStart" returnType="boolean" output="false" >
-		<cfargument type="string" name="targetPage" required="true" />
+	<cffunction name="onRequestStart" returnType="boolean" output="true" >
+        <cfargument type="string" name="targetPage" required="true" />
 
 		<cfif structKeyExists(URL, "Restart") >
 			<cfset applicationStop() />
 			<cfset sessionInvalidate() />
 			<cflocation url=#CGI.SCRIPT_NAME# addtoken="false" />
-		</cfif>
+        </cfif>
+
+        <cfif find("index.cfm", arguments.targetPage) GT 0 >
+            <cfset application.nonce = application.security.getNonce() />
+
+            <cfif (structKeyExists(URL, "DevMode") AND URL.DevMode EQ false) OR NOT structKeyExists(URL, "DevMode") >
+                <cfheader name="Content-Security-Policy" value=#application.security.getCSPPolicy(includeNonce=application.nonce)# />
+            </cfif>
+        </cfif>
 
 		<cfreturn true />
 	</cffunction>

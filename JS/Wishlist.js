@@ -6,13 +6,13 @@ import { JSUtils } from "./Utils.js";
 export class Wishlist {
 
     constructor(backendEntryPoint="UNDEFINED_ARGUMENT", ajaxAuthKey="UNDEFINED_ARGUMENT") {
-		
+
 		this._wishlistID = 0; // Mutable
         this._wishes = new Map();
         this._backendEntryPoint = backendEntryPoint;
         this._ajaxAuthKey = ajaxAuthKey;
 		this._backendController = "wishlists";
-		
+
 		let immutable = {
 			configurable: false,
 			enumerable: false,
@@ -74,9 +74,9 @@ export class Wishlist {
 		);
 
 		if (backendRequest.ERROR === false) {
-            wish.setId(backendRequest.WISH_ID);
-            this._wishes.set(backendRequest.WISH_ID, wish);
-            
+            wish.setId(backendRequest.DATA.WISH_ID);
+            this._wishes.set(backendRequest.DATA.WISH_ID, wish);
+
             return {ERROR: false};
 		}
 
@@ -94,13 +94,13 @@ export class Wishlist {
     getWish(id=-1) {
         return this._wishes.get(id);
 	}
-	
+
 	getWishlistID() {
 		return this._wishlistID;
 	}
 
     async deleteWish(id=-1, token="UNDEFINED_ARGUMENT") {
-		
+
 		const backendRequest = await JSUtils.fetchRequest(
 			this._backendEntryPoint,
 			this._ajaxAuthKey,
@@ -115,7 +115,7 @@ export class Wishlist {
 
 		if (backendRequest.ERROR === false) {
 			this._wishes.delete(id);
-			return {ERROR: false}; 
+			return {ERROR: false};
 		}
 
 		return backendRequest;

@@ -1,4 +1,4 @@
-/* 
+/*
 global
 	CFAjaxAuthKey
 */
@@ -32,27 +32,10 @@ controllerServices.provide("authentication", authentication);
 main.controllers.menuDialog = new MainMenu(backendEntryPoint, CFAjaxAuthKey, controllerServices);
 main.controllers.wishlist = new Wishes(controllerServices);
 
-// Object.freeze(main);
-// Object.freeze(main.controllers);
+Object.freeze(main);
+Object.freeze(main.controllers);
 console.log("Everything's initialized and ready to rock and roll");
 
-// TODO(thomas): debugging
-window.main = main;
-
-// $('#EditWish').modal('show');
-
-/*
-document.getElementById("MenuButton").click();
-document.querySelector("[data-wishlist-owner-id='1']").click();
-document.getElementById("Username").value = "tfrengler";
-document.getElementById("Password").value = "tf499985";
-main.controllers.menuDialog.logIn({srcElement: document.getElementById("LogIn")});
-*/
-
-/*
-	image/jpeg
-	image/bmp
-	image/png
-	image/tiff
-	image/webp
-*/
+// Debug mode, expose the stuff to the user so we can access stuff via the console
+if (window.location.href.indexOf("?DevMode=1") > -1)
+	window.main = main;

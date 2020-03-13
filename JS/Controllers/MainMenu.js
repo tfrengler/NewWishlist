@@ -25,18 +25,23 @@ export class MainMenu {
 		});
 
 		this._init();
-		
+
 		console.log("MainMenu-controller initialized");
 		return Object.freeze(this);
 	}
 
 	_init() {
-		this._elements.loginButton.addEventListener("click", (event) => this.logIn(event));
+		this._elements.loginButton.addEventListener("click", (event) => this.logIn(event.srcElement));
 		this._elements.logoutButton.addEventListener("click", (event) => this.logOut(event));
 
 		this._elements.usernameInput.addEventListener("keyup", ()=> this.onUserCredentialsInput());
 		this._elements.passwordInput.addEventListener("keyup", ()=> this.onUserCredentialsInput());
-		
+
+		this._elements.root.addEventListener("keydown", (event)=> {
+			if (event.keyCode == 13 && !this._elements.loginButton.disabled)
+				this.logIn(this._elements.loginButton);
+		});
+
 		this._elements.wishlistButtons.forEach(button=> button.addEventListener("click", (event) => this.loadWishlist(event)));
 	}
 
@@ -76,9 +81,9 @@ export class MainMenu {
 		});
 	}
 
-	async logIn(event) {
+	async logIn(loginButtonElement) {
 
-		event.srcElement.disabled = true;
+		loginButtonElement.disabled = true;
 		this._elements.loginButtonLoader.classList.remove("hidden");
 
 		const loginResponse = await this._services.get("authentication").logIn(
@@ -87,7 +92,7 @@ export class MainMenu {
 		);
 
 		if (loginResponse.ERROR) {
-			event.srcElement.disabled = false;
+			loginButtonElement.disabled = false;
 			this._services.get("events").trigger(this._services.get("eventTypes").LOGIN_FAILED);
 			this._elements.loginButtonLoader.classList.add("hidden");
 
@@ -95,7 +100,7 @@ export class MainMenu {
 			return;
 		}
 
-		event.srcElement.innerText = "LOGGED IN: " + this._services.get("authentication").getUserDisplayName();
+		loginButtonElement.innerText = "LOGGED IN: " + this._services.get("authentication").getUserDisplayName();
 
 		this._elements.usernameInput.value = "";
 		this._elements.passwordInput.value = "";
@@ -130,7 +135,7 @@ export class MainMenu {
 		this._elements.usernameInput.disabled = false;
 		this._elements.passwordInput.disabled = false;
 
-		event.srcElement.disabled = false;
+		event.srcElement.disabled = true;
 		this._elements.logoutButtonLoader.classList.add("hidden");
 
 		this._services.get("notifications").notifySuccess("You have been logged out");

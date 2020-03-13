@@ -3,11 +3,11 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 	property name="security"			type="SecurityManager"	getter="false"	setter="false";
 	property name="authentication"		type="Authentication"	getter="false"	setter="false";
 	property name="workingDir"			type="string"			getter="false"	setter="false";
-	
+
 	public WishlistManager function init(required SecurityManager securityManager, required Authentication authenticationManager, required string workingDir) {
 		if (NOT directoryExists(arguments.workingDir))
 			throw(message="Error initializing WishlistManager", detail="Directory from argument 'workingDir' does not exist: #arguments.workingDir#");
-		
+
 		variables.authentication = arguments.authenticationManager;
 		variables.security = arguments.SecurityManager
 		variables.workingDir = arguments.workingDir;
@@ -37,7 +37,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 
 		return returnData;
     }
-    
+
     private string function getExistingWish(required numeric id, required string userID) {
         var wishlistDir = "#variables.workingDir#/#arguments.userID#";
 
@@ -69,7 +69,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         var wishIDs = [];
         var newWishID = 0;
         var matcher = {};
-        
+
         for(var wishFile in directoryList(path=wishlistDir, recurse=false, listInfo="name", filter="*.json", type="file")) {
 
             wishContents = fileRead("#wishlistDir#/#wishFile#");
@@ -80,8 +80,8 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 
         newWishID = arrayMax(wishIDs) + 1;
         if (newWishID EQ 0)
-            return {STATUS_CODE: 3} 
-        
+            return {STATUS_CODE: 3}
+
         try {
             fileWrite(wishlistFilePath, serializeJSON({
                 id: newWishID,
@@ -95,7 +95,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
             return {STATUS_CODE: 4}
         }
 
-        return {STATUS_CODE: 0, WISH_ID: newWishID};
+        return {STATUS_CODE: 0, DATA: {WISH_ID: newWishID}};
     }
 
 	public struct function saveWish(required numeric id, required struct data, required string token, required struct sessionHandle) {
@@ -154,7 +154,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 
 		if (NOT fileExists(wishlistFilePath))
 			return {STATUS_CODE: 2};
-        
+
         try {
             fileDelete(wishlistFilePath);
         }
@@ -162,7 +162,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
             // TODO(thomas): Dump somewhere?
             return {STATUS_CODE: 3}
         }
-        
+
 		return {STATUS_CODE: 0};
 	}
 }

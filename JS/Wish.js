@@ -39,14 +39,12 @@ export class Wish {
 	}
 
 	setId(newId=0) {
-		if (newId <= 0 || this._id > 0) return;
+		if (newId <= 0 || this._id > 0) {
+			console.warn("Unable to set new wish id. Argument is not greater than 0 OR the wish already had its id set");
+			return;
+		}
 
 		this._id = newId;
-		Object.defineProperty(this, "_id", {
-			configurable: false,
-			enumerable: false,
-			writable: false
-		});
 	}
 
 	getData() {
@@ -73,7 +71,7 @@ export class Wish {
 	getId() {
 		return this._id;
 	}
-	
+
 	equalTo(wishInstance={}) {
 		if (!(wishInstance instanceof Wish))
 			throw new Error("Argument 'wishInstance' is expected to be an instance of Wish, but it is not: " + wishInstance.constructor.name);

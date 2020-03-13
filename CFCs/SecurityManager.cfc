@@ -8,7 +8,7 @@
     <cfset variables.validChecksumAlgorithms = ["MD2","MD5","SHA-1","SHA-256","SHA-384","SHA-512"] />
     <cfset variables.defaultHashAlgorithm = validChecksumAlgorithms[6] />
     <cfset variables.secretKey = generateSecretKey("AES", variables.cipherStrength) />
-    <cfset variables.messageDigestInstance = nullValue() />
+    <cfset variables.messageDigestInstance = {} />
 
 	<!--- PUBLIC --->
 	<cffunction name="getXOREncodedString" returntype="string" access="public" >
@@ -32,13 +32,13 @@
 		<cfset var returnData = [] />
 
 		<cfloop from="0" to=#len(arguments.stringToEncode)-1# index="currentIndex" >
-	
+
 			<cfset charCode = variables.characterInterface.codePointAt(stringToEncode, currentIndex) />
 			<cfset maskKeyToUse = currentIndex mod len(arguments.mask) />
 			<cfset maskKeyCode = variables.characterInterface.codePointAt(arguments.mask, maskKeyToUse) />
 			<cfset charCodeMasked = bitXor(charCode, maskKeyCode) />
 			<cfset hexedChar = formatBaseN(charCodeMasked, 16) />
-			
+
 			<cfset arrayAppend(returnData, hexedChar) />
 			<cfset arrayAppend(returnData, variables.XORCharDelimiter) />
 
@@ -70,9 +70,9 @@
 			<cfset maskKeyCode = variables.characterInterface.codePointAt(arguments.mask, maskKeyToUse) />
 			<cfset maskedCharCode = inputBaseN(listGetAt(arguments.stringToDecode, index+1, variables.XORCharDelimiter), 16) />
 			<cfset unmaskedCharCode = bitXor(maskedCharCode, maskKeyCode) />
-		
+
 			<cfset char = variables.characterInterface.toChars(unmaskedCharCode) />
-			
+
 			<cfset arrayAppend(decoded, char) />
 		</cfloop>
 
@@ -83,19 +83,21 @@
 		<cfargument name="filePath" type="string" required="false" default="" hint="The absolute path and name of a file you want to create a checksum for. Takes precedence over 'stringContent'" />
 		<cfargument name="stringContent" type="string" required="false" default="" hint="The string content you want to create a checksum from" />
 		<cfargument name="algorithm" type="string" required="false" default=#variables.validChecksumAlgorithms[5]# hint="Algorithm to use. By default SHA-384 is used" />
-	
+
 		<cfif arrayFind(variables.validChecksumAlgorithms, arguments.algorithm) IS 0 >
 			<cfthrow message="Unable to generate checksum" detail="The algorithm you passed is invalid (#arguments.algorithm#). Valid algorithms are: #arrayToList(variables.validChecksumAlgorithms)#" />
 		</cfif>
 
-        <cfif variables.messageDigestInstance IS nullValue() OR (variables.messageDigestInstance IS NOT nullValue() AND variables.messageDigestInstance.getAlgorithm() IS NOT arguments.algorithm)  >
-            <cfset variables.messageDigestInstance = createObject("java", "java.security.MessageDigest").getInstance(arguments.algorithm) />
-        </cfif>
-		
+		<cfif NOT isInstanceOf(variables.messageDigestInstance, "java.security.MessageDigest") >
+			<cfset variables.messageDigestInstance = createObject("java", "java.security.MessageDigest").getInstance(arguments.algorithm) />
+		<cfelseif variables.messageDigestInstance.getAlgorithm() IS NOT arguments.algorithm >
+			<cfset variables.messageDigestInstance = createObject("java", "java.security.MessageDigest").getInstance(arguments.algorithm) />
+		</cfif>
+
 		<cfif len(arguments.filePath) GT 0 AND fileExists(arguments.filePath) >
 			<cfset arguments.stringContent = fileRead(arguments.filePath, variables.encoding) />
 		<cfelseif len(arguments.stringContent) IS 0 >
-			<cfreturn "" />
+			<cfreturn "STRING_IS_EMPTY" />
 		</cfif>
 
 		<cfreturn toBase64(variables.messageDigestInstance.digest(arguments.stringContent.getBytes()), variables.encoding) />
@@ -112,12 +114,13 @@
 				default-src 'self';
 				frame-src data: 'self';
 				font-src 'self';
-				img-src 'self';
+				img-src https: data: 'self';
 				media-src 'self';
 				object-src 'none';
-				script-src 'self' <cfif len(arguments.includeNonce) GT 0 >'nonce-#arguments.nonce#'</cfif>;
-				style-src 'self' <cfif len(arguments.includeNonce) GT 0 >'nonce-#arguments.nonce#'</cfif>;
+				script-src 'self' <cfif len(arguments.includeNonce) GT 0 >'nonce-#arguments.includeNonce#'</cfif>;
+				style-src 'self' <cfif len(arguments.includeNonce) GT 0 >'nonce-#arguments.includeNonce#'</cfif>;
 				form-action 'self';
+				<!--- require-sri-for 'script'; Require integrity attrib --->
 				<!--- report-uri CSPViolation.cfm; --->
 			</cfsavecontent>
 		</cfsilent>
@@ -126,7 +129,7 @@
 		<cfreturn CSPPolicy />
 	</cffunction>
 
-	<cffunction name="getNonce" returntype="string" access="public" hint="Returns a cryptographic nonce for use with inline JS" > 
+	<cffunction name="getNonce" returntype="string" access="public" hint="Returns a cryptographic nonce for use with inline JS" >
 		<cfreturn toBase64(generateSecretKey("AES", variables.cipherStrength)) />
 	</cffunction>
 
@@ -157,16 +160,16 @@
 		<cfif len(arguments.sessionID) IS 0 >
 			<cfthrow message="Unable to generate auth key" detail="Argument 'sessionID' is empty" />
 		</cfif>
-	
+
 		<cfif arrayFind(variables.validChecksumAlgorithms, arguments.algorithm) IS 0 >
 			<cfthrow message="Unable to generate auth key" detail="The algorithm you passed is invalid (#arguments.algorithm#). Valid algorithms are: #arrayToList(variables.validChecksumAlgorithms)#" />
 		</cfif>
 
 		<cfreturn hash(arguments.sessionid & generateSecretKey("AES", variables.cipherStrength), arguments.algorithm) />
     </cffunction>
-    
+
     <cffunction name="getSaltString" returntype="string" access="public" >
-		<cfreturn hash(generateSecretKey("AES"), variables.defaultHashAlgorithm) /> 
+		<cfreturn hash(generateSecretKey("AES"), variables.defaultHashAlgorithm) />
 	</cffunction>
 
 	<cffunction name="generateRandomPassword" returntype="string" access="public" >
@@ -192,10 +195,10 @@
 
 		<cfreturn arrayToList(password, "") />
     </cffunction>
-    
+
     <cffunction name="generateSaltedPassword" returntype="struct" access="public" >
         <cfargument name="plainPassword" type="string" required="true" hint="The new password, in plain text (non-hashed)" />
-        
+
         <cfif len(arguments.plainPassword) IS 0 >
 			<cfthrow message="Unable to generate salted password" detail="Argument 'plainPassword' is empty" />
 		</cfif>
@@ -221,11 +224,11 @@
         <cfif len(arguments.plainPassword) IS 0 >
 			<cfthrow message="Unable to validate password" detail="Argument 'plainPassword' is empty" />
         </cfif>
-        
+
         <cfif len(arguments.salt) IS 0 >
 			<cfthrow message="Unable to validate password" detail="Argument 'salt' is empty" />
         </cfif>
-        
+
         <cfif len(arguments.securedPassword) IS 0 >
 			<cfthrow message="Unable to validate password" detail="Argument 'securedPassword' is empty" />
 		</cfif>
@@ -235,7 +238,7 @@
             variables.defaultHashAlgorithm,
             variables.encoding
         ) />
-        
+
         <cfreturn hashedPasswordWithSalt IS arguments.securedPassword />
 	</cffunction>
 
