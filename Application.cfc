@@ -26,6 +26,7 @@
         <cfif NOT fileExists(configFileLocation) >
             <cfthrow message="Error initializing application" detail="Config-file does not exist" />
         </cfif>
+
         <cfset var config = deserializeJSON(fileRead(configFileLocation)) />
 
 		<cfset application.mapping = {
@@ -46,10 +47,12 @@
             "wishlists": ["getWishes","saveWish","addWish","deleteWish"]
         } />
 
+        <cfset application.logger = new CFCs.LogManager(application.mapping.logs) />
         <cfset application.security = new CFCs.SecurityManager() />
-        <cfset application.authentication = new CFCs.Authentication(application.security, application.mapping.userData) />
+        <cfset application.authentication = new CFCs.Authentication(application.security, application.mapping.userData, application.logger) />
         <cfset application.wishlists = new CFCs.WishlistManager(application.security, application.authentication, application.mapping.wishlistData) />
 
+        <cfset application.logger.logSimple("Application started", "INFO", "Application.cfc") />
 		<cfreturn true />
 	</cffunction>
 
@@ -73,17 +76,25 @@
 		<cfreturn true />
 	</cffunction>
 
-	<cffunction name="onSessionStart" returnType="void" output="false" >
-		<!--- <cfdump var="Session-scope started!" /> --->
-	</cffunction>
+	<!--- <cffunction name="onSessionStart" returnType="void" output="false" >
+        <cfset application.logger.logSimple("New session started: #session.sessionID#", "INFO", "Application.cfc") />
+	</cffunction> --->
 
 	<cffunction name="onSessionEnd" returnType="void" output="false" >
         <cfargument name="sessionScope" type="struct" required="true" />
         <cfargument name="applicationScope" type="struct" required="true" />
 
         <cfif structKeyExists(arguments.sessionScope, "token") >
-            <cfset application.authentication.logOut(arguments.sessionScope.token) />
+            <cfset arguments.applicationScope.logger.logSimple("Session timed out: #sessionScope.sessionID#", "INFO", "Application.cfc") />
+            <cfset arguments.applicationScope.authentication.logOut(arguments.sessionScope.token) />
         </cfif>
+    </cffunction>
+
+    <cffunction name="onApplicationEnd" returnType="void">
+        <cfargument name="applicationScope" required=true/>
+
+        <cfset arguments.applicationScope.logger.logSimple("Application shutting down", "WARNING", "Application.cfc") />
+        <cfset arguments.applicationScope.logger.dispose() />
     </cffunction>
 
 </cfcomponent>

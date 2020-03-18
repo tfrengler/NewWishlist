@@ -28,7 +28,7 @@ export class AuthenticationManager {
             "_services": immutable
 		});
 
-		console.log(`AuthenticationManager initialized, with backendEntryPoint '${backendEntryPoint}' and ajaxAuthKey: ${ajaxAuthKey}`);
+		console.log("AuthenticationManager initialized");
 		return Object.seal(this);
 	}
 
@@ -47,6 +47,9 @@ export class AuthenticationManager {
 		);
 
 		if (backendRequest.ERROR === false) {
+			if (!backendRequest.DATA.TOKEN)
+				return {ERROR: true};
+
 			this._token = backendRequest.DATA.TOKEN;
 			this._displayName = backendRequest.DATA.DISPLAY_NAME;
 			this._userID = parseInt(backendRequest.DATA.USER_ID);

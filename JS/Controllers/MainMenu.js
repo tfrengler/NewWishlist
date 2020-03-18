@@ -32,7 +32,7 @@ export class MainMenu {
 
 	_init() {
 		this._elements.loginButton.addEventListener("click", (event) => this.logIn(event.srcElement));
-		this._elements.logoutButton.addEventListener("click", (event) => this.logOut(event));
+		this._elements.logoutButton.addEventListener("click", (event) => this.logOut(event.srcElement));
 
 		this._elements.usernameInput.addEventListener("keyup", ()=> this.onUserCredentialsInput());
 		this._elements.passwordInput.addEventListener("keyup", ()=> this.onUserCredentialsInput());
@@ -115,14 +115,14 @@ export class MainMenu {
 		this._services.get("events").trigger(this._services.get("eventTypes").LOGIN_SUCCESS);
 	}
 
-	async logOut(event) {
+	async logOut(logOutButton) {
 
-		event.srcElement.disabled = true;
+		logOutButton.disabled = true;
 		this._elements.logoutButtonLoader.classList.remove("hidden");
 		const logoutResponse = await this._services.get("authentication").logOut(this._services.get("authentication").getToken());
 
 		if (logoutResponse.ERROR === true) {
-			event.srcElement.disabled = false;
+			logOutButton.disabled = false;
 			this._elements.logoutButtonLoader.classList.add("hidden");
 			this._services.get("notifications").notifyError("Oops, failed to log out\nContact the admin", 4000);
 			return;
@@ -135,7 +135,7 @@ export class MainMenu {
 		this._elements.usernameInput.disabled = false;
 		this._elements.passwordInput.disabled = false;
 
-		event.srcElement.disabled = true;
+		logOutButton.disabled = true;
 		this._elements.logoutButtonLoader.classList.add("hidden");
 
 		this._services.get("notifications").notifySuccess("You have been logged out");
