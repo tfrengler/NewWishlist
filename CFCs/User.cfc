@@ -1,11 +1,12 @@
 component output="false" accessors="false" persistent="true" modifier="final" {
-    
+	
+	// PUBLIC, GETTERS ONLY. These are expected keys in the json user-file
     property name="id"			    type="string"	getter="true"	setter="false";
 	property name="name"			type="string"	getter="true"	setter="false";
 	property name="password"		type="string"	getter="true"	setter="false";
 	property name="salt"			type="string"	getter="true"	setter="false";
 	property name="displayName"		type="string"	getter="true"	setter="false";
-    
+    // PUBLIC, SETTERS AND GETTERS
     property name="sessionID"		type="string"	getter="true"	setter="true";
     property name="token"   		type="string"	getter="true"	setter="true";
     

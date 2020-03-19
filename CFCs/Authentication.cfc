@@ -2,7 +2,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 
     property name="security"	type="SecurityManager"	getter="false"	setter="false";
     property name="logger"      type="LogManager"       getter="false"	setter="false";
-	property name="users"		type="struct"			getter="true"	setter="false";
+	property name="users"		type="struct"			getter="true"	setter="false"; <!--- Keys are the filenames, minus the json-extension --->
 	property name="workingDir"	type="string"			getter="false"	setter="false";
 	
 	public Authentication function init(required SecurityManager securityManager, required string workingDir, LogManager logger) {
@@ -13,17 +13,7 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         variables.workingDir = arguments.workingDir;
         if (structKeyExists(arguments, "logger")) variables.logger = arguments.logger;
         
-        for(var userFile in directoryList(path=variables.workingDir, recurse=false, listInfo="name", filter="*.json", type="file")) {
-            try {
-                var userData = deserializeJSON(fileRead(variables.workingDir & "/" & userFile));
-            }
-            catch(error) {
-                if (!isNull(variables.logger)) variables.logger.logSimple("Unable to parse user file: #userFile#", "CRITICAL", getFunctionCalledName());
-            }
-
-            variables.users[listFirst(userFile, ".")] = new User(data=userData);
-        }
-
+        variables.reload();
 		return this;
 	}
 
@@ -83,6 +73,21 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         }
 
         return {STATUS_CODE: 1, DATA: NULL};
+    };
+
+    public void function reload() {
+        variables.users = {};
+
+        for(var userFile in directoryList(path=variables.workingDir, recurse=false, listInfo="name", filter="*.json", type="file")) {
+            try {
+                var userData = deserializeJSON(fileRead(variables.workingDir & "/" & userFile));
+            }
+            catch(error) {
+                if (!isNull(variables.logger)) variables.logger.logSimple("Unable to parse user file: #userFile#", "CRITICAL", getFunctionCalledName());
+            }
+
+            variables.users[listFirst(userFile, ".")] = new User(data=userData);
+        }
     };
 
     public boolean function isValidSession(required string token, required struct sessionHandle) {

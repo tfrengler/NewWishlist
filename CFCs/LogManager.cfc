@@ -95,7 +95,7 @@
         <cfreturn reReplace(arguments.path, "/{2,}|\\{1,}", "/", "ALL") />
     </cffunction>
 
-    <cffunction name="appendLine" returntype="void" access="private" hint="Appends text to the simple log-file. Text may not appear immediately in the file due to buffering. Flushing is guaranteed to happen when this is called based on the flush time threshold though." >
+    <cffunction name="appendLine" returntype="void" access="private" hint="Appends text to the simple log-file. Text may not appear immediately in the file due to buffering. Flushing is guaranteed to happen when this is called based on the flush time threshold." >
         <cfargument name="output" type="string" required="true" />
 
         <cfset var fileHandle = variables.getLogFileHandle(complex=false) />
