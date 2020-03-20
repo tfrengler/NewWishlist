@@ -156,18 +156,18 @@ JSUtils.fetchRequest = async function(
 	});
 
 	if (response.status !== 200)
-		return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed for some reason (status ${response.status})`});
+		return Object.freeze({ERROR: true, DATA: {MESSAGE: "HTTP-call to AjaxProxy failed for some reason: " + response.statusText,  STATUS: response.status}});
 	
 	if (!response.json)
-		return Object.freeze({ERROR: true, DATA: "Return data from the backend entry point could not be parsed as JSON"});
+		return Object.freeze({ERROR: true, DATA: {MESSAGE: "Return data from the backend entry point could not be parsed as JSON", STATUS: 666}});
 	
 	const decodedResponse = await response.json();
 
 	if (decodedResponse.RESPONSE_CODE !== 0)
-		return Object.freeze({ERROR: true, DATA: `HTTP-call to AjaxProxy failed when acting on request data (response code: ${decodedResponse.RESPONSE_CODE})`});
+		return Object.freeze({ERROR: true, DATA: {MESSAGE: "HTTP-call to AjaxProxy failed when acting on request data", STATUS: decodedResponse.RESPONSE_CODE}});
 
 	if (decodedResponse.RESPONSE_CODE === 0 && decodedResponse.RESPONSE.STATUS_CODE !== 0)
-		return Object.freeze({ERROR: true, DATA: `Internal error beyond the proxy (status code: ${decodedResponse.RESPONSE.STATUS_CODE})`});
+		return Object.freeze({ERROR: true, DATA: {MESSAGE: "Internal error beyond the proxy", STATUS: decodedResponse.RESPONSE.STATUS_CODE}});
 
 	return Object.freeze({ERROR: false, DATA: decodedResponse.RESPONSE.DATA || null});
 };

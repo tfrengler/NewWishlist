@@ -32,10 +32,12 @@ controllerServices.provide("authentication", authentication);
 main.controllers.menuDialog = new MainMenu(backendEntryPoint, CFAjaxAuthKey, controllerServices);
 main.controllers.wishlist = new Wishes(controllerServices);
 
+// Debug mode, expose the stuff to the user so we can access stuff via the console
+if (window.location.href.indexOf("?DevMode=1") > -1) {
+	window.main = main;
+	window.main.authentication = authentication;
+}
+
 Object.freeze(main);
 Object.freeze(main.controllers);
 console.log("Everything's initialized and ready to rock and roll");
-
-// Debug mode, expose the stuff to the user so we can access stuff via the console
-if (window.location.href.indexOf("?DevMode=1") > -1)
-	window.main = main;

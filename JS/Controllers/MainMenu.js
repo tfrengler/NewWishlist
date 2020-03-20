@@ -42,6 +42,12 @@ export class MainMenu {
 				this.logIn(this._elements.loginButton);
 		});
 
+		this._services.get("events").subscribe(
+			this._services.get("eventTypes").USER_SESSION_INVALID,
+			()=> this.logOut(this._elements.logoutButton),
+			this
+        );
+
 		this._elements.wishlistButtons.forEach(button=> button.addEventListener("click", (event) => this.loadWishlist(event)));
 	}
 
@@ -79,6 +85,8 @@ export class MainMenu {
 			wishlist: wishlist,
 			wishlistOwner: event.srcElement.dataset["wishlistOwnerName"]
 		});
+
+		this._elements.closeMenuButton.click();
 	}
 
 	async logIn(loginButtonElement) {

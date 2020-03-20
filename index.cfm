@@ -155,7 +155,7 @@
 						<i class="fas fa-bars"></i>
 					</button>
 					<span id="ActiveWishlistOwnerNameContainer" class="btn btn-warning" >
-						<i class="fas fa-user"></i>&nbsp;
+						<i class="fas fa-clipboard-list"></i>&nbsp;
 						<span id="ActiveWishlistOwnerName"></span>
 					</span>
 				</section>
@@ -192,5 +192,47 @@
 	* Split controller Wishes into stuff that happens in the main window, and what happens in the edit-dialog
 	* Change all event handlers from just passing the raw event, to passing the proper arguments instead
 	* Move notifications to the side or maybe the bottom?
+	* When loading wishlists, signing in, editing wishes should the dialog maybe close?
+	* Log users out when performing unauthenticated actions. NOTE: Need to change fetchRequest() in JSUtils to pass back the internal status code
 
+	BACKEND DATA FLOW:
+
+	Front end call via JSUtils.fetchRequest():
+	
+	-> calls AjaxProxy, which always returns a struct with RESPONSE and RESPONSE_CODE.
+	- By RESPONSE_CODE the call is considered successfull if it's 0, with anything else being an error.
+	- RESPONSE contains data from the backend as a struct. If the backend returns void (or an error happened) it contains null.
+	
+	-> fetchRequest returns a structure with ERROR and DATA.
+
+	- If AjaxProxy response code is not 0 then ERROR is true, otherwise false.
+	- If an error happened the DATA structure will contain MESSAGE and STATUS:
+		-> the former contains a text message describing the error.
+		-> the latter containing the backend controller's STATUS_CODE or the HTTP status code.
+
+	-----AJAX PROXY:
+	{
+		RESPONSE_CODE: int,
+		RESPONSE: {
+			DATA: {} or null,
+			STATUS_CODE: int
+		}
+	}
+
+	- If the call succeeds then DATA contains a structure with whatever data the backend passed back OR null if the backend returns void.
+
+		-----FETCHREQUEST:
+		{
+			ERROR: false,
+			DATA: {} or null
+		}
+		
+		-----FETCHREQUEST:
+		{
+			ERROR: true,
+			DATA: {
+				MESSAGE: string,
+				STATUS: int
+			}
+		}
 --->

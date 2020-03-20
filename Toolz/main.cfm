@@ -27,9 +27,9 @@
             <fieldset>
                 <legend>USERS:</legend>
                 <ul>
-                    <li>Create new user</li>
-                    <li>Change user details</li>
-                    <li>List users</li>
+                    <li><a href="CreateUser.cfm">Create new user</a></li>
+                    <li><a href="EditUsers.cfm">Change user details</a></li>
+                    <li><a href="ListUsers.cfm">List users</a></li>
                 </ul>
             </fieldset>
 

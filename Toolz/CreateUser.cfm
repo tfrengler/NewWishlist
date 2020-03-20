@@ -19,6 +19,9 @@
 
     <body>
         <h1>Create new user</h1>
+        <p>
+            <h2><a href="main.cfm">BACK</a></h2>
+        </p>
 
         <form name="CreateUserForm" method="POST" enctype="application/x-www-form-urlencoded" >
             <cfoutput>

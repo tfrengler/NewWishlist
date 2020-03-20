@@ -102,7 +102,18 @@ component output="false" accessors="false" persistent="true" modifier="final" {
         }
 
         return false;
-	};
+    };
+    
+    public User function getUserById(required numeric id) {
+        for(var username in variables.users) {
+            var currentUser = variables.users[username];
+
+            if (currentUser.getId() EQ arguments.id)
+                return currentUser;
+        }
+
+        return new User(data={dummy: true});
+    };
 
     public User function getUserByToken(required string token) {
         for(var username in variables.users) {
@@ -114,7 +125,6 @@ component output="false" accessors="false" persistent="true" modifier="final" {
 
         return new User(data={dummy: true});
     };
-
     
     public User function getUserByName(required string name) {
         for(var username in variables.users) {

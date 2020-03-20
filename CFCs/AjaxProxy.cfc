@@ -23,7 +23,7 @@
 
             <cfcatch>
                 <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("Unable to deserialize parameters: #cfcatch.message#", "CRITICAL", "AjaxProxy") /></cfif>
-				<cfreturn {RESPONSE_CODE: 1} />
+				<cfreturn {RESPONSE_CODE: 1, RESPONSE: nullValue()} />
 			</cfcatch>
         </cftry>
         
@@ -45,18 +45,18 @@
 
             <cfcatch>
                 <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("Unable to upload files: #cfcatch.message#", "CRITICAL", "AjaxProxy") /></cfif>
-                <cfreturn {RESPONSE_CODE: 2} />
+                <cfreturn {RESPONSE_CODE: 2, RESPONSE: nullValue()} />
             </cfcatch>
         </cftry>
 
         <cfif len(arguments.controller) IS 0 >
             <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("No controller defined in arguments (empty string)", "CRITICAL", "AjaxProxy") /></cfif>            
-			<cfreturn {RESPONSE_CODE: 3} />
+			<cfreturn {RESPONSE_CODE: 3, RESPONSE: nullValue()} />
 		</cfif>
 
         <cfif len(arguments.function) IS 0 >
             <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("No function defined in arguments (empty string)", "CRITICAL", "AjaxProxy") /></cfif>            
-			<cfreturn {RESPONSE_CODE: 4} />
+			<cfreturn {RESPONSE_CODE: 4, RESPONSE: nullValue()} />
 		</cfif>
 
         <cfif   NOT structKeyExists(session, "ajaxAuthKey")
@@ -64,18 +64,18 @@
 
             <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("No auth key in response or auth key not valid. See complex log for details.", "CRITICAL", "AjaxProxy") /></cfif>
             <cfif NOT isNull(application.logger)><cfset application.logger.logComplex(arguments, "CRITICAL", "AjaxProxy") /></cfif>
-			<cfreturn {RESPONSE_CODE: 5} />
+			<cfreturn {RESPONSE_CODE: 5, RESPONSE: nullValue()} />
 		</cfif>
 
 		<!--- The following 2 checks need to be coupled with a struct called allowedAJAXControllers in the application scope, where each index is the name of a CFC, and each key is an array of method names --->
         <cfif NOT structKeyExists(application.allowedAJAXControllers, arguments.controller) >
             <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("Controller is not on the allowed-list: #arguments.controller#", "CRITICAL", "AjaxProxy") /></cfif>
-			<cfreturn {RESPONSE_CODE: 6} />
+			<cfreturn {RESPONSE_CODE: 6, RESPONSE: nullValue()} />
 		</cfif>
 
         <cfif NOT arrayFind(application.allowedAJAXControllers[arguments.controller], arguments.function) >
             <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("Controller method not on the allowed-list: #arguments.function#", "CRITICAL", "AjaxProxy") /></cfif>
-			<cfreturn {RESPONSE_CODE: 7} />
+			<cfreturn {RESPONSE_CODE: 7, RESPONSE: nullValue()} />
 		</cfif>
 		
         <cftry>
@@ -83,9 +83,9 @@
             <!--- Whatever is returned by the invoked method is expected to be able to be serialized --->
             <cfset var controllerResponse = invoke(application[arguments.controller], arguments.function, deserializedParameters) />
 			
-            <!--- The invoked method is void so we return a magic number indicating that the invoke succeeded but there's no return data --->
+            <!--- If the invoked method is void... --->
             <cfif NOT isDefined("controllerResponse") OR isNull(controllerResponse) >
-				<cfreturn {RESPONSE_CODE: 42} />
+				<cfreturn returnData />
             </cfif>
             
             <cfif NOT isSimpleValue(controllerResponse) >
@@ -96,7 +96,7 @@
                 <!--- Error upon invoking the method or serializing the response. Put some sort of logging in here for the catch if you want to know what's going on --->
                 <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("Error calling the controller, see complex log for more detail", "CRITICAL", "AjaxProxy") /></cfif>
                 <cfif NOT isNull(application.logger)><cfset application.logger.logComplex(cfcatch, "CRITICAL", "AjaxProxy") /></cfif>
-				<cfreturn {RESPONSE_CODE: 8} />
+				<cfreturn {RESPONSE_CODE: 8, RESPONSE: nullValue()} />
 			</cfcatch>
 		</cftry>
 
@@ -106,7 +106,7 @@
         </cfif>
         
         <cfif NOT isNull(application.logger)><cfset application.logger.logSimple("Controller did not return a struct as expected (#arguments.controller#.#arguments.function#)", "CRITICAL", "AjaxProxy") /></cfif>
-        <cfreturn {RESPONSE_CODE: 9} />
+        <cfreturn {RESPONSE_CODE: 9, RESPONSE: nullValue()} />
 	</cffunction>
 
 </cfcomponent>

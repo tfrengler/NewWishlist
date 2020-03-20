@@ -67,13 +67,13 @@ export class Wishes {
 			this
         );
         
-        $(this._elements.editWishDialog).on('show.bs.modal', (event)=> this.onOpenEditDialog(event));
-        $(this._elements.editWishDialog).on('hide.bs.modal', (event)=> this.onCloseEditDialog(event));
+        $(this._elements.editWishDialog).on('show.bs.modal', (event)=> this.onOpenEditDialog(parseInt(event.relatedTarget.dataset.wishid)));
+        $(this._elements.editWishDialog).on('hide.bs.modal', ()=> this.onCloseEditDialog());
 
-        $(this._elements.deleteWishDialogElement).on('show.bs.modal', (event)=> this.onOpenDeleteDialog(event));
+        $(this._elements.deleteWishDialogElement).on('show.bs.modal', (event)=> this.onOpenDeleteDialog(parseInt(event.relatedTarget.dataset.wishid)));
 
-        this._elements.saveWishChangesButton.addEventListener("click", (event)=> this.onSaveWish(event));
-        this._elements.confirmWishDeleteButton.addEventListener("click", (event)=> this.onDeleteWish(event));
+        this._elements.saveWishChangesButton.addEventListener("click", ()=> this.onSaveWish());
+        this._elements.confirmWishDeleteButton.addEventListener("click", ()=> this.onDeleteWish());
         this._elements.editPictureImgElement.addEventListener("error", JSUtils.onImageNotFound);
 	}
 
@@ -277,10 +277,8 @@ export class Wishes {
 		return container;
     }
 
-    onOpenEditDialog(event) {
-
-        const callingWishID = parseInt(event.relatedTarget.dataset.wishid);
-        if (isNaN(callingWishID)) throw new Error("Could not parse wish id when opening edit dialog");
+    onOpenEditDialog(callingWishID=null) {
+        if (isNaN(parseInt(callingWishID))) throw new Error("Could not parse wish id when opening edit dialog");
 
         this._elements.editWishDialog.dataset.activewish = callingWishID;
         this._elements.editPictureStatusIndictor.classList.add("hidden");
@@ -307,10 +305,8 @@ export class Wishes {
         this._elements.editLinksTextElements.forEach((textElement)=> textElement.value = "");
     }
     
-    onOpenDeleteDialog(event) {
-        const callingWishID = parseInt(event.relatedTarget.dataset.wishid);
-        if (isNaN(callingWishID)) throw new Error("Could not parse wish id when opening delete dialog");
-
+    onOpenDeleteDialog(callingWishID=null) {
+        if (isNaN(parseInt(callingWishID))) throw new Error("Could not parse wish id when opening delete dialog");
         this._elements.deleteWishDialogElement.dataset.wishid = callingWishID;
     }
 
@@ -323,8 +319,16 @@ export class Wishes {
         if (isNaN(wishIDToDelete) || wishIDToDelete == 0) throw new Error("Could not parse wish ID to delete or it's 0");
         let backendResponse = await this._wishlist.deleteWish(wishIDToDelete, this._services.get("authentication").getToken());
         
-        if (backendResponse.ERROR === true)
-            this._services.get("notifications").notifyError("Failed to delete wish\nContact the admin :/", 3000);
+        if (backendResponse.ERROR === true) {
+            /*if (backendResponse.RESPONSE.DATA.STATUS_CODE === 1) {
+                this._services.get("notifications").notifyWarning("Your login session is invalid", 3000);
+                this._services.get("events").trigger(this._services.get("eventTypes").USER_SESSION_INVALID);
+            }
+            else*/
+
+                console.error(backendResponse.DATA);
+                this._services.get("notifications").notifyError("Failed to delete wish\nContact the admin :/", 3000);
+        }
         else {
             this._removeWishFromDOM(wishIDToDelete);
             this._services.get("notifications").notifySuccess("Wish deleted");

@@ -19,6 +19,9 @@
 
     <body>
         <h1>List users</h1>
+        <p>
+            <h2><a href="main.cfm">BACK</a></h2>
+        </p>
 
         <cfset userDataDir = application.mapping.userData />
 
@@ -47,7 +50,19 @@
 
                 for (userName in allUsers) {
                     currentUser = allUsers[userName];
-                    writeDump(var=currentUser, label="#userName#");
+                    
+                    writeDump(
+                        var={
+                            id=currentUser.getId(),
+                            name=currentUser.getName(),
+                            password=currentUser.getPassword(),
+                            salt=currentUser.getSalt(),
+                            displayName=currentUser.getDisplayName(),
+                            sessionID=currentUser.getSessionID(),
+                            token=currentUser.getToken()
+                        },
+                        label="#userName#"
+                    );
                 }
             </cfscript>
         </fieldset>
