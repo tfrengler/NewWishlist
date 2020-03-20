@@ -84,8 +84,9 @@
         <cfargument name="sessionScope" type="struct" required="true" />
         <cfargument name="applicationScope" type="struct" required="true" />
 
+        <cfset arguments.applicationScope.logger.logSimple("Session timed out: #sessionScope.sessionID#", "INFO", "Application.cfc") />
+        
         <cfif structKeyExists(arguments.sessionScope, "token") >
-            <cfset arguments.applicationScope.logger.logSimple("Session timed out: #sessionScope.sessionID#", "INFO", "Application.cfc") />
             <cfset arguments.applicationScope.authentication.logOut(arguments.sessionScope.token) />
         </cfif>
     </cffunction>

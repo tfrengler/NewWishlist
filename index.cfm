@@ -193,7 +193,8 @@
 	* Change all event handlers from just passing the raw event, to passing the proper arguments instead
 	* Move notifications to the side or maybe the bottom?
 	* When loading wishlists, signing in, editing wishes should the dialog maybe close?
-	* Log users out when performing unauthenticated actions. NOTE: Need to change fetchRequest() in JSUtils to pass back the internal status code
+	* Log users out when performing unauthenticated actions. 
+		- NOTE: Need to react to the status code returned by WishlistManager (1 for invalid sessions), and also need to take into account the expiration of the auth key
 
 	BACKEND DATA FLOW:
 
@@ -226,7 +227,7 @@
 			ERROR: false,
 			DATA: {} or null
 		}
-		
+
 		-----FETCHREQUEST:
 		{
 			ERROR: true,

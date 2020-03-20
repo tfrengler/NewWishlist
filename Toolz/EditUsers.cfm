@@ -26,16 +26,16 @@
         <fieldset>
             <legend>USERS:</legend>
 
-            <ol>
+            <ul>
                 <cfscript>
                     allUsers = application.authentication.getAllUsers();
 
                     for (userName in allUsers) {
                         currentUser = allUsers[userName];
-                        writeOutput("<li><a href='EditUsers.cfm?User=#encodeForURL(currentUser.getId())#'>#currentUser.getName()# | #currentUser.getId()#</a></li>");
+                        writeOutput("<li><a href='EditUsers.cfm?User=#encodeForURL(currentUser.getId())#'>#currentUser.getId()# | #currentUser.getName()#</a></li>");
                     }
                 </cfscript>
-            </ol>
+            </ul>
         </fieldset>
         <br/>
 
