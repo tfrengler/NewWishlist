@@ -34,7 +34,7 @@
             <fieldset>
                 <legend>WISHES:</legend>
                 <ul>
-                    <li>Show wishlists and wishes</li>
+                    <li><button name="ShowWishes">Show wishlists and wishes</button></li>
                 </ul>
             </fieldset>
         </form>
@@ -88,6 +88,37 @@
                 </cfscript>
 
                 <cfdump var=#filesToDelete# label="FILES DELETED" />
+            </cfif>
+
+            <cfif structKeyExists(FORM, "ShowWishes") >
+                <h2>WISHES:</h2>
+
+                <cfscript>
+                    wishlistDir = application.mapping.wishlistData;
+                    wishIndex = {};
+
+                    if (NOT directoryExists(wishlistDir)) {
+                        writeOutput("<p>ERROR: Wishlist dir does not exist: #wishlistDir#</p>")
+                    }
+
+                    for(wishFile in directoryList(path=wishlistDir, recurse=true, listInfo="path", filter="*.json", type="file")) {
+                        
+                        wishFileParts = listToArray(wishFile, "\/");
+                        wishlistID = val(wishFileParts[ arrayLen(wishFileParts) - 1 ]);
+
+                        if (!structKeyExists(wishIndex, wishlistID))
+                            wishIndex[wishlistID] = {};
+
+                        try {
+                            wishIndex[wishlistID][arrayLast(wishFileParts)] = deserializeJSON( fileRead(wishFile) );
+                        }
+                        catch(error) {
+                            wishIndex[wishlistID][arrayLast(wishFileParts)] = "ERROR: Unable to deserialize file";
+                        }
+                    }
+
+                    writeDump(wishIndex);
+                </cfscript>
             </cfif>
         </cfif>
     </body>
