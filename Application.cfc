@@ -13,7 +13,18 @@
 
     <cffunction name="onApplicationStart" returnType="boolean" output="true" >
 
+        <!--- SECURITY --->
         <cfset application.nonce = "" />
+
+        <cfset var assets = [
+            "/CSS/font_awesome/css/all.css",
+            "/CSS/bootstrap/bootstrap.min.css",
+            "/JS/bootstrap/jquery-3.4.1.slim.min.js",
+            "/JS/bootstrap/popper.min.js",
+            "/JS/bootstrap/bootstrap.min.js",
+            "/CSS/main.css",
+            "/JS/main.js"
+        ] />
 
 		<cfset application["normalizePath"] = function(required string path) {
 			<!--- We do two passes to catch any double-forward slashes that are created in the first pass --->
@@ -51,6 +62,12 @@
         <cfset application.security = new CFCs.SecurityManager() />
         <cfset application.authentication = new CFCs.Authentication(application.security, application.mapping.userData, application.logger) />
         <cfset application.wishlists = new CFCs.WishlistManager(application.security, application.authentication, application.mapping.wishlistData) />
+
+        <cfset application.integrityList = {} />
+        <cfscript>
+            for(var assetFile in assets)
+                application.integrityList[ listLast(assetFile, "/") ] = application.security.createChecksum(filePath=this.root & assetFile);
+        </cfscript>
 
         <cfset application.logger.logSimple("Application started", "INFO", "Application.cfc") />
 		<cfreturn true />

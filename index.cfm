@@ -10,21 +10,21 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 		<!--- 3rd Party --->
-		<link #URL.DevMode ? "" : 'integrity="sha384-Di7COCxiGf5cCNlWvilzYruB8I/QphvEsI4Z5WpO7eKhaDuvB5UI4QCtTl6hYUz1"'# rel="stylesheet" href="CSS/font_awesome/css/all.css" />
-		<link #URL.DevMode ? "" : 'integrity="sha384-4bTenJziBfRum8FDNUospyhSSix1d2YpYdU/mMpDqEoa79df7KP2ptTsYrz6XMWR"'# rel="stylesheet" href="CSS/bootstrap/bootstrap.min.css" />
+		<link #URL.DevMode ? "" : 'integrity="sha384-#application.integrityList["all.css"]#"'# rel="stylesheet" href="CSS/font_awesome/css/all.css" />
+		<link #URL.DevMode ? "" : 'integrity="sha384-#application.integrityList["bootstrap.min.css"]#"'# rel="stylesheet" href="CSS/bootstrap/bootstrap.min.css" />
 		<!--- 3rd Party --->
-		<script #URL.DevMode ? "" : 'integrity="sha384-pkoRnrXNgdq2HZ+4rl5xWYyNF60aFp2DgiMpMlWoa+NyC4XXJEhjXEVKM2gTkBW6"'# src="JS/bootstrap/jquery-3.4.1.slim.min.js"></script>
-		<script #URL.DevMode ? "" : 'integrity="sha384-LsC345MdEcKqeNkjUm1MZY2zfeALf4Iqn+DbI/5gdhCoWMoTVQvkd/0n+yOSie0F"'# src="JS/bootstrap/popper.min.js"></script>
-		<script #URL.DevMode ? "" : 'integrity="sha384-GQt+azJYTXdZSGjGyhmO+xX875BtpqCQkaEYDeJwkpi2L7UqEky8qS08BUVla9dc"'# src="JS/bootstrap/bootstrap.min.js"></script>
+		<script #URL.DevMode ? "" : 'integrity="sha384-#application.integrityList["jquery-3.4.1.slim.min.js"]#"'# src="JS/bootstrap/jquery-3.4.1.slim.min.js"></script>
+		<script #URL.DevMode ? "" : 'integrity="sha384-#application.integrityList["popper.min.js"]#"'# src="JS/bootstrap/popper.min.js"></script>
+		<script #URL.DevMode ? "" : 'integrity="sha384-#application.integrityList["bootstrap.min.js"]#"'# src="JS/bootstrap/bootstrap.min.js"></script>
 
         <cfsilent>
             <cfset authKey = application.security.generateAuthKey(sessionid=session.sessionid) />
             <cfset session.ajaxAuthKey = authKey />
         </cfsilent>
 
-		<link #URL.DevMode ? "" : 'nonce="#application.nonce#"'# rel="stylesheet" href="CSS/main.css" />
+		<link #URL.DevMode ? "" : 'integrity="sha384-#application.integrityList["main.css"]#"'# rel="stylesheet" href="CSS/main.css" />
         <script #URL.DevMode ? "" : 'nonce="#application.nonce#"'# ><cfset writeOutput("const CFAjaxAuthKey = '#authKey#';") /></script>
-		<script #URL.DevMode ? "" : 'integrity="sha384-+8VJ4wxgctUll9F61SXcXx69yO0RvAF4lvGeKRw9Co0XR1y3d6SordlAMf3RWEFU"'# type="module" defer src="JS/main.js" ></script>
+		<script #URL.DevMode ? "" : 'integrity="sha384-#application.integrityList["main.js"]#"'# type="module" defer src="JS/main.js" ></script>
 	</head>
 	</cfoutput>
 

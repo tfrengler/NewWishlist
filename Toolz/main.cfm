@@ -99,6 +99,7 @@
 
                     if (NOT directoryExists(wishlistDir)) {
                         writeOutput("<p>ERROR: Wishlist dir does not exist: #wishlistDir#</p>")
+                        abort;
                     }
 
                     for(wishFile in directoryList(path=wishlistDir, recurse=true, listInfo="path", filter="*.json", type="file")) {
