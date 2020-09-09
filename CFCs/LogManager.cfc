@@ -118,7 +118,7 @@
         <cfset var logFileName = variables.simpleLogFileName() >
 
         <cfif   getTickCount() - variables.lastLogFileCheck GT variables.logFileCheckInterval 
-                AND getFileInfo(variables.absolutePathToLogFolder & logFileName).name NEQ logFileName >
+                AND NOT fileExists(variables.absolutePathToLogFolder & logFileName) >
 
             <cfset variables.appendLine(output="#getOutputPrependData("LogManager")# - Logfile CLOSED, rotating to file: #logFileName#") />
             <cfset variables.dispose() />
