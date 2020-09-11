@@ -118,10 +118,10 @@
         <cfset var logFileName = variables.simpleLogFileName() >
 
         <cfif   getTickCount() - variables.lastLogFileCheck GT variables.logFileCheckInterval 
-                AND NOT fileExists(variables.absolutePathToLogFolder & logFileName) >
+                AND fileExists(variables.absolutePathToLogFolder & logFileName) IS false >
 
-            <cfset variables.appendLine(output="#getOutputPrependData("LogManager")# - Logfile CLOSED, rotating to file: #logFileName#") />
-            <cfset variables.dispose() />
+            <cfset variables.simpleLogFileHandle.write("#getOutputPrependData("LogManager")# - Logfile CLOSED, rotating to file: #logFileName#") />
+            <cfset variables.simpleLogFileHandle.newLine() />
             <cfset variables.lastLogFileCheck = getTickCount() />
 
             <cfset var fileWriter = createObject("java", "java.io.FileWriter").init(variables.absolutePathToLogFolder & logFileName, true) />
