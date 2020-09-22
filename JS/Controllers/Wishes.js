@@ -11,7 +11,7 @@ export class Wishes {
 
 		this._services = services;
         this._wishlist = null; // Mutable
-        this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.+\\..+?)(?=/|$)");
+        this._linkDomainRegex = new RegExp("^(http://|https://|www\.)(.*?)/");
 
 		this._elements = Object.freeze({
             addNewWishButton: document.getElementById("AddWish"),
