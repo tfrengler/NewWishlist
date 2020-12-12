@@ -139,7 +139,7 @@ export class Wishlist {
 		);
 
 		if (backendRequest.ERROR === false) {
-			this._wishes.set(wish.id, wish);
+			this._wishes.set(wish.getId(), wish);
 			return {ERROR: false};
 		}
 
